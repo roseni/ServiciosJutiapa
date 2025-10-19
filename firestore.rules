@@ -1,0 +1,139 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ============================================
+    // COLECCIÓN: users
+    // ============================================
+    match /users/{uid} {
+      // Lectura: Pública (para mostrar perfiles de técnicos)
+      allow read: if true;
+      
+      // Escritura: Solo el dueño puede escribir su perfil
+      allow write: if request.auth != null && request.auth.uid == uid;
+      
+      // EXCEPCIÓN: Permitir actualizar campos de calificación desde cualquier usuario autenticado
+      // Esto es necesario para que el sistema de reviews funcione
+      allow update: if request.auth != null
+        && (
+          // El dueño puede actualizar cualquier cosa
+          request.auth.uid == uid
+          // O es una actualización de estadísticas de reviews (solo campos específicos)
+          || (
+            // Solo se están actualizando campos de rating
+            request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['averageRating', 'totalReviews', 'ratingsBreakdown'])
+            // Los valores son numéricos válidos
+            && request.resource.data.averageRating is number
+            && request.resource.data.totalReviews is number
+            && request.resource.data.ratingsBreakdown is map
+          )
+        );
+    }
+    
+    // ============================================
+    // COLECCIÓN: publications
+    // ============================================
+    match /publications/{publicationId} {
+      // Lectura: Público (cualquiera puede ver publicaciones)
+      allow read: if true;
+      
+      // Crear: Solo usuarios autenticados
+      allow create: if request.auth != null
+        // El authorId debe coincidir con el usuario autenticado
+        && request.resource.data.authorId == request.auth.uid
+        // Validar campos requeridos
+        && request.resource.data.title is string
+        && request.resource.data.description is string
+        && request.resource.data.authorName is string
+        && request.resource.data.authorRole in ['cliente', 'tecnico']
+        && request.resource.data.type in ['service_request', 'portfolio']
+        // Validar longitud de strings
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 100
+        && request.resource.data.description.size() > 0
+        && request.resource.data.description.size() <= 1000
+        // Validar imageUrls es un array
+        && request.resource.data.imageUrls is list
+        // Validar presupuesto si existe (debe ser número o null)
+        && (!request.resource.data.keys().hasAny(['budget']) 
+          || request.resource.data.budget == null 
+          || request.resource.data.budget is number)
+        // Validar timestamps
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      
+      // Actualizar: Solo el autor puede actualizar (para futuras ediciones)
+      allow update: if request.auth != null
+        && resource.data.authorId == request.auth.uid
+        // No permitir cambiar el autor
+        && request.resource.data.authorId == resource.data.authorId
+        // Actualizar timestamp
+        && request.resource.data.updatedAt == request.time;
+      
+      // Eliminar: Solo el autor puede eliminar
+      allow delete: if request.auth != null
+        && resource.data.authorId == request.auth.uid;
+    }
+    
+    // ============================================
+    // COLECCIÓN: proposals
+    // ============================================
+    match /proposals/{proposalId} {
+      // Lectura: Solo el cliente o el técnico involucrados
+      allow read: if request.auth != null 
+        && (resource.data.clientId == request.auth.uid 
+          || resource.data.technicianId == request.auth.uid);
+      
+      // Crear: Usuarios autenticados pueden crear propuestas
+      // - Cliente puede crear propuesta a técnico (clientId = usuario actual)
+      // - Técnico puede crear propuesta a cliente (technicianId = usuario actual)
+      allow create: if request.auth != null
+        && (request.resource.data.clientId == request.auth.uid 
+          || request.resource.data.technicianId == request.auth.uid)
+        && request.resource.data.status == "pending"
+        && request.resource.data.createdBy in ['cliente', 'tecnico'];
+      
+      // Actualizar: El receptor puede aceptar/rechazar, el emisor puede cancelar
+      // - Receptor (técnico o cliente) puede aceptar/rechazar
+      // - Emisor puede cancelar su propia propuesta
+      allow update: if request.auth != null
+        && (resource.data.technicianId == request.auth.uid 
+          || resource.data.clientId == request.auth.uid)
+        && resource.data.status == "pending"
+        && (
+          // Receptor puede aceptar/rechazar
+          request.resource.data.status in ["accepted", "rejected"]
+          // Emisor puede cancelar (basado en createdBy)
+          || (request.resource.data.status == "cancelled"
+            && ((resource.data.createdBy == "cliente" && resource.data.clientId == request.auth.uid)
+              || (resource.data.createdBy == "tecnico" && resource.data.technicianId == request.auth.uid)))
+        );
+      
+      // Eliminar: El creador de la propuesta puede eliminarla
+      allow delete: if request.auth != null
+        && (resource.data.clientId == request.auth.uid
+          || resource.data.technicianId == request.auth.uid);
+    }
+    
+    // ============================================
+    // COLECCIÓN: reviews
+    // ============================================
+    match /reviews/{reviewId} {
+      // Lectura: Pública (cualquiera puede ver reseñas)
+      allow read: if true;
+      
+      // Crear: Solo usuarios autenticados
+      allow create: if request.auth != null
+        && request.resource.data.reviewerId == request.auth.uid
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5
+        // Validar que verifiedWork es boolean (si existe)
+        && (!request.resource.data.keys().hasAny(['verifiedWork']) 
+          || request.resource.data.verifiedWork is bool);
+      
+      // Actualizar y Eliminar: No permitido (las reseñas son permanentes)
+      allow update, delete: if false;
+    }
+  }
+}

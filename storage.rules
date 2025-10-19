@@ -1,0 +1,68 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // ============================================
+    // CARPETA: publications
+    // ============================================
+    match /publications/{userId}/{fileName} {
+      // Lectura: Pública (cualquiera puede ver las imágenes)
+      allow read: if true;
+      
+      // Escritura: Solo el dueño puede subir archivos a su carpeta
+      allow write: if request.auth != null
+        && request.auth.uid == userId
+        // Validar que sea una imagen
+        && request.resource.contentType.matches('image/.*')
+        // Validar tamaño máximo 5MB
+        && request.resource.size < 5 * 1024 * 1024;
+      
+      // Eliminar: Solo el dueño puede eliminar sus imágenes
+      allow delete: if request.auth != null
+        && request.auth.uid == userId;
+    }
+    
+    // ============================================
+    // CARPETA: proposals
+    // ============================================
+    match /proposals/{userId}/{fileName} {
+      // Lectura: Pública (las imágenes de propuestas pueden ser vistas)
+      allow read: if true;
+      
+      // Escritura: Solo el dueño puede subir archivos a su carpeta
+      allow write: if request.auth != null
+        && request.auth.uid == userId
+        // Validar que sea una imagen
+        && request.resource.contentType.matches('image/.*')
+        // Validar tamaño máximo 5MB
+        && request.resource.size < 5 * 1024 * 1024;
+      
+      // Eliminar: Solo el dueño puede eliminar sus imágenes
+      allow delete: if request.auth != null
+        && request.auth.uid == userId;
+    }
+    
+    // ============================================
+    // CARPETA: profiles (para futuras fotos de perfil)
+    // ============================================
+    match /profiles/{userId}/{fileName} {
+      // Lectura: Pública
+      allow read: if true;
+      
+      // Escritura: Solo el dueño
+      allow write: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.contentType.matches('image/.*')
+        && request.resource.size < 5 * 1024 * 1024;
+      
+      // Eliminar: Solo el dueño
+      allow delete: if request.auth != null
+        && request.auth.uid == userId;
+    }
+    
+    // Denegar todo lo demás
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

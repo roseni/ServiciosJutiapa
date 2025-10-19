@@ -1,0 +1,122 @@
+%% Diagrama de flujo de la aplicación ServiciosJT
+%% Desarrollado con Next.js 15, React 19, TypeScript, Firebase, Tailwind CSS
+
+graph TD
+    %% =====================
+    %% DEFINICIÓN DE CLASES
+    %% =====================
+    classDef auth fill:#3b82f6,stroke:#1e40af,color:#ffffff,font-weight:bold
+    classDef cliente fill:#22c55e,stroke:#15803d,color:#ffffff
+    classDef tecnico fill:#f97316,stroke:#c2410c,color:#ffffff
+    classDef decision fill:#facc15,stroke:#b45309,color:#000000
+    classDef action fill:#60a5fa,stroke:#2563eb,color:#000000
+    classDef db fill:#9ca3af,stroke:#6b7280,color:#000000
+
+    %% =====================
+    %% SECCIÓN 1: AUTENTICACIÓN
+    %% =====================
+    A[Inicio de aplicación]:::auth --> B{¿Usuario autenticado?}:::decision
+
+    B -->|No| C[Mostrar Login / GoogleAuthButton]:::auth
+    C --> D[Registrar usuario con Google Firebase Auth]:::auth
+    D --> E[Crear documento en Firestore ]:::db
+
+    B -->|Sí| F[ClientAuthGate valida sesión]:::auth
+    E --> F
+
+    F --> G{¿Onboarding completado?}:::decision
+    G -->|No| H[Redirigir a OnboardingGate]:::auth
+    G -->|Sí| I[Mostrar panel según rol]:::auth
+
+    %% =====================
+    %% SECCIÓN 2: ONBOARDING Y ROLES
+    %% =====================
+    H --> J[Usuario selecciona rol]:::action
+    J -->|Cliente| K[Crear perfil cliente]:::cliente
+    J -->|Técnico| L[Crear perfil técnico + servicios]:::tecnico
+    J -->|Ninguno| M[Mostrar selector de roles]:::decision
+
+    K --> N[Finalizar Onboarding Cliente]:::cliente
+    L --> O[Finalizar Onboarding Técnico]:::tecnico
+
+    N --> I
+    O --> I
+
+    %% =====================
+    %% SECCIÓN 3: PANEL PRINCIPAL (POST-ONBOARDING)
+    %% =====================
+    I --> P{¿Rol del usuario?}:::decision
+    P -->|Cliente| Q[Área de Clientes ]:::cliente
+    P -->|Técnico| R[Área de Técnicos ]:::tecnico
+
+    %% =====================
+    %% SECCIÓN 4: SISTEMA DE PUBLICACIONES
+    %% =====================
+    Q --> Q1[Crear Solicitud de Servicio]:::cliente
+    R --> R1[Crear Publicación de Portafolio]:::tecnico
+
+    Q1 --> Q2[Agregar descripción, presupuesto e imágenes]:::cliente
+    R1 --> R2[Agregar descripción y fotos de trabajos previos]:::tecnico
+
+    Q2 --> Q3[Guardar en Firestore → collection: publications]:::db
+    R2 --> R3[Guardar en Firestore → collection: publications]:::db
+
+    Q3 --> S[Explorar publicaciones de técnicos]:::cliente
+    R3 --> T[Explorar solicitudes de clientes]:::tecnico
+
+    %% =====================
+    %% SECCIÓN 5: SISTEMA DE PROPUESTAS
+    %% =====================
+    S --> U[Seleccionar técnico y enviar propuesta]:::cliente
+    U --> U1[Formulario: título, descripción, presupuesto, imágenes]:::cliente
+    U1 --> U2[Guardar en Firestore → collection: proposals ]:::db
+
+    U2 --> V[Notificación a técnico ]:::tecnico
+
+    V --> W{¿Técnico acepta propuesta?}:::decision
+    W -->|Sí| X[Desbloquear contacto del cliente ]:::tecnico
+    W -->|No| Y[Enviar feedback de rechazo al cliente]:::tecnico
+
+    X --> Z[Inicio de conversación directa cliente ↔ técnico]:::action
+    Y --> Q[Cliente recibe respuesta y puede volver a proponer]:::cliente
+
+    %% =====================
+    %% SECCIÓN 6: ESTADOS Y PWA
+    %% =====================
+    subgraph Estados_de_Usuario
+        E1[Invitado: solo vista pública]:::auth
+        E2[Autenticado sin onboarding: redirigido a onboarding]:::auth
+        E3[Cliente: crear solicitudes, propuestas, calificar técnicos]:::cliente
+        E4[Técnico: mostrar portafolio, recibir propuestas, gestionar servicios]:::tecnico
+    end
+
+    I --> E3
+    I --> E4
+
+    subgraph PWA
+        PWA1[Instalación en dispositivos móviles]:::action
+        PWA2[Modo offline limitado]:::action
+        PWA3[Iconos personalizados y tema azul ]:::action
+    end
+    A --> PWA1
+    PWA1 --> PWA2
+    PWA2 --> PWA3
+
+    %% =====================
+    %% SECCIÓN 7: ARQUITECTURA TÉCNICA
+    %% =====================
+    subgraph Arquitectura_Técnica
+        T1[Frontend: Next.js 15 + React 19 + TypeScript]:::auth
+        T2[Backend: Firebase ]:::db
+        T3[Estado global: Zustand]:::action
+        T4[Estilos: Tailwind CSS]:::action
+        T5[Testing: Vitest + Testing Library]:::action
+    end
+
+    A --> Arquitectura_Técnica
+
+    %% =====================
+    %% CONEXIONES GENERALES
+    %% =====================
+    Z --> Q
+    Z --> R
