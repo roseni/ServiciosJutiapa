@@ -11,6 +11,8 @@ import InstallButton from "@/components/pwa/InstallButton";
 import BottomNav from "@/components/navigation/BottomNav";
 import Link from "next/link";
 import Image from "next/image";
+import FirebaseAnalytics from "@/components/analytics/FirebaseAnalytics";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -59,7 +61,7 @@ export default function RootLayout({
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-x-hidden pb-16`}
-      >
+      >dshjdhsj
         <header className="w-full border-b border-gray-200 bg-white sticky top-0 z-50 shadow-sm">
           <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between gap-2 sm:gap-4">
             {/* Logo y Nombre */}
@@ -105,6 +107,7 @@ export default function RootLayout({
           </div>
         </ClientAuthGate>
         <InstallPrompt />
+        <FirebaseAnalytics />
       </body>
     </html>
   );

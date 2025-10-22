@@ -60,7 +60,7 @@ export default function TechnicianCard({ technician, showViewProfile = true }: P
           </div>
 
           {/* Calificación */}
-          {hasRating && (
+          {hasRating ? (
             <div className="flex items-center gap-2 mb-3">
               <StarRating 
                 rating={technician.averageRating || 0} 
@@ -72,7 +72,7 @@ export default function TechnicianCard({ technician, showViewProfile = true }: P
                 ({technician.totalReviews} {technician.totalReviews === 1 ? 'reseña' : 'reseñas'})
               </span>
             </div>
-          )}
+          ):null}
 
           {/* Biografía */}
           {technician.bio && (

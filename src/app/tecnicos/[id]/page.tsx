@@ -151,14 +151,14 @@ export default function TechnicianPublicProfilePage() {
               </div>
 
               {/* Calificación */}
-              {hasRating && (
+              {hasRating ? (
                 <div className="flex items-center justify-center sm:justify-start gap-2 mb-4">
                   <StarRating rating={technician.averageRating || 0} readonly size="sm" showNumber />
                   <span className="text-sm text-gray-600">
                     ({technician.totalReviews} {technician.totalReviews === 1 ? 'reseña' : 'reseñas'})
                   </span>
                 </div>
-              )}
+              ):null}
 
               {/* Botón de hacer propuesta (solo para clientes) */}
               {isClient && (
