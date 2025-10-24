@@ -61,7 +61,7 @@ export default function RootLayout({
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-x-hidden pb-16`}
-      >dshjdhsj
+      >
         <header className="w-full border-b border-gray-200 bg-white sticky top-0 z-50 shadow-sm">
           <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between gap-2 sm:gap-4">
             {/* Logo y Nombre */}
