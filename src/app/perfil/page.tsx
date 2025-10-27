@@ -308,14 +308,7 @@ export default function PerfilPage() {
               <p className="text-base sm:text-lg text-gray-900 break-all">
                 {userProfile.email || 'No especificado'}
               </p>
-               {!isEditing && (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors active:scale-95 touch-manipulation"
-              >
-                Editar
-              </button>
-            )}
+
             </div>
           </div>
         </div>

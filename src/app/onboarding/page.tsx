@@ -1,13 +1,12 @@
 "use client";
 
+import React, { Suspense } from "react";
+import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { completeOnboarding } from "@/lib/firebase/onboarding";
-import { useRouter } from "next/navigation";
-import React from "react";
 
-export default function OnboardingPage() {
-  const { user, userProfile, ensureSubscribed, refreshUserProfile } =
-    useAuthStore();
+function OnboardingContent() {
+  const { user, userProfile, ensureSubscribed, refreshUserProfile } = useAuthStore();
   const router = useRouter();
   const [mounted, setMounted] = React.useState(false);
 
@@ -86,13 +85,11 @@ export default function OnboardingPage() {
 
   // Formatear mientras el usuario escribe
   const handlePhoneChange = (value: string) => {
-    // Permitir solo números, espacios y guiones
     const cleaned = value.replace(/[^\d\s\-]/g, "");
     setPhoneNumber(cleaned);
   };
 
   const handleDPIChange = (value: string) => {
-    // Permitir solo números, espacios y guiones
     const cleaned = value.replace(/[^\d\s\-]/g, "");
     setDpi(cleaned);
   };
@@ -119,12 +116,7 @@ export default function OnboardingPage() {
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 13l4 4L19 7"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
           <h2 className="mt-6 text-xl sm:text-2xl font-semibold text-gray-900">
@@ -163,29 +155,18 @@ export default function OnboardingPage() {
                   onClick={() => setRole("cliente")}
                   className={`
                     relative flex flex-col items-center justify-center px-4 py-4 sm:py-5 rounded-lg border-2 transition-all touch-manipulation
-                    ${
-                      role === "cliente"
-                        ? "border-black bg-gray-50 shadow-sm"
-                        : "border-gray-300 hover:border-gray-400 bg-white"
-                    }
+                    ${role === "cliente" ? "border-black bg-gray-50 shadow-sm" : "border-gray-300 hover:border-gray-400 bg-white"}
                     ${loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer active:scale-[0.98]"}
                   `}
                   disabled={loading}
                 >
                   <svg
-                    className={`w-8 h-8 sm:w-10 sm:h-10 mb-2 ${
-                      role === "cliente" ? "text-black" : "text-gray-600"
-                    }`}
+                    className={`w-8 h-8 sm:w-10 sm:h-10 mb-2 ${role === "cliente" ? "text-black" : "text-gray-600"}`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                   <span className={`font-medium ${role === "cliente" ? "text-black" : "text-gray-700"}`}>
                     Cliente
@@ -211,29 +192,18 @@ export default function OnboardingPage() {
                   onClick={() => setRole("tecnico")}
                   className={`
                     relative flex flex-col items-center justify-center px-4 py-4 sm:py-5 rounded-lg border-2 transition-all touch-manipulation
-                    ${
-                      role === "tecnico"
-                        ? "border-black bg-gray-50 shadow-sm"
-                        : "border-gray-300 hover:border-gray-400 bg-white"
-                    }
+                    ${role === "tecnico" ? "border-black bg-gray-50 shadow-sm" : "border-gray-300 hover:border-gray-400 bg-white"}
                     ${loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer active:scale-[0.98]"}
                   `}
                   disabled={loading}
                 >
                   <svg
-                    className={`w-8 h-8 sm:w-10 sm:h-10 mb-2 ${
-                      role === "tecnico" ? "text-black" : "text-gray-600"
-                    }`}
+                    className={`w-8 h-8 sm:w-10 sm:h-10 mb-2 ${role === "tecnico" ? "text-black" : "text-gray-600"}`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                    />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                   <span className={`font-medium ${role === "tecnico" ? "text-black" : "text-gray-700"}`}>
                     Técnico
@@ -258,10 +228,7 @@ export default function OnboardingPage() {
 
             {/* Nombre Completo */}
             <div>
-              <label
-                htmlFor="fullName"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+              <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
                 Nombre completo <span className="text-red-500">*</span>
               </label>
               <input
@@ -276,17 +243,12 @@ export default function OnboardingPage() {
                 maxLength={100}
                 autoComplete="name"
               />
-              <p className="mt-1.5 text-xs text-gray-500">
-                Ingresa tu nombre completo como aparece en tu DPI
-              </p>
+              <p className="mt-1.5 text-xs text-gray-500">Ingresa tu nombre completo como aparece en tu DPI</p>
             </div>
 
             {/* Número de Teléfono */}
             <div>
-              <label
-                htmlFor="phoneNumber"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+              <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
                 Número de teléfono <span className="text-red-500">*</span>
               </label>
               <input
@@ -301,17 +263,12 @@ export default function OnboardingPage() {
                 disabled={loading}
                 autoComplete="tel"
               />
-              <p className="mt-1.5 text-xs text-gray-500">
-                8 dígitos (ej: 2345-6789)
-              </p>
+              <p className="mt-1.5 text-xs text-gray-500">8 dígitos (ej: 2345-6789)</p>
             </div>
 
             {/* DPI */}
             <div>
-              <label
-                htmlFor="dpi"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+              <label htmlFor="dpi" className="block text-sm font-medium text-gray-700 mb-1">
                 DPI <span className="text-red-500">*</span>
               </label>
               <input
@@ -326,9 +283,7 @@ export default function OnboardingPage() {
                 disabled={loading}
                 maxLength={17}
               />
-              <p className="mt-1.5 text-xs text-gray-500">
-                13 dígitos (ej: 1234 56789 0101)
-              </p>
+              <p className="mt-1.5 text-xs text-gray-500">13 dígitos (ej: 1234 56789 0101)</p>
             </div>
 
             {error && (
@@ -347,12 +302,28 @@ export default function OnboardingPage() {
           </form>
 
           <div className="mt-5 sm:mt-6 text-center">
-            <p className="text-xs text-gray-500">
-              Todos los campos son obligatorios
-            </p>
+            <p className="text-xs text-gray-500">Todos los campos son obligatorios</p>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function OnboardingPage() {
+  // Suspense de nivel superior para cubrir cualquier uso interno de useSearchParams()
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center px-4">
+          <div className="text-center">
+            <div className="inline-block h-10 w-10 sm:h-12 sm:w-12 animate-spin rounded-full border-4 border-solid border-gray-900 border-r-transparent" />
+            <p className="mt-3 sm:mt-4 text-base sm:text-lg text-gray-600 font-medium">Cargando…</p>
+          </div>
+        </div>
+      }
+    >
+      <OnboardingContent />
+    </Suspense>
   );
 }

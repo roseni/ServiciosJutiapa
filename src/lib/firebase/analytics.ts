@@ -1,18 +1,26 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// src/lib/analytics.ts
+// src/lib/firebase/analytics.ts
+
 import type { Analytics } from "firebase/analytics";
-import { getAnalytics, isSupported, logEvent, setAnalyticsCollectionEnabled } from "firebase/analytics";
-import { app } from "@/lib/firebase/firestore"; // <-- corrección
+import {
+  getAnalytics,
+  isSupported,
+  logEvent,
+  setAnalyticsCollectionEnabled
+} from "firebase/analytics";
+import { app } from "@/lib/firebase/firestore"; // ✅ usa el archivo donde inicializas Firebase App
 
 let analyticsInstance: Analytics | null = null;
 
 export async function initAnalytics() {
-  if (typeof window === "undefined") return null;     // evita SSR
+  if (typeof window === "undefined") return null; // evita SSR
   if (analyticsInstance) return analyticsInstance;
+
   if (await isSupported()) {
     analyticsInstance = getAnalytics(app);
     return analyticsInstance;
   }
+
   return null; // Safari ITP / navegadores sin soporte
 }
 

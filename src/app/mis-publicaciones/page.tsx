@@ -1,16 +1,16 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/authStore';
 import { getUserPublications, type Publication } from '@/lib/firebase/publications';
 import PublicationCard from '@/components/publicaciones/PublicationCard';
 
-export default function MyPublicationsPage() {
+function MyPublicationsContent() {
   const router = useRouter();
   const { user, userProfile } = useAuthStore();
-  
+
   const [publications, setPublications] = React.useState<Publication[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -20,7 +20,6 @@ export default function MyPublicationsPage() {
       setLoading(false);
       return;
     }
-
     setLoading(true);
     setError(null);
     try {
@@ -38,14 +37,11 @@ export default function MyPublicationsPage() {
     loadMyPublications();
   }, [loadMyPublications]);
 
-  // Si no está logueado
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="text-center">
-          <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-4">
-            Debes iniciar sesión
-          </h2>
+          <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-4">Debes iniciar sesión</h2>
           <button
             onClick={() => router.push('/auth')}
             className="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
@@ -64,16 +60,13 @@ export default function MyPublicationsPage() {
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-                Mis Publicaciones
-              </h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Mis Publicaciones</h1>
               <p className="text-sm sm:text-base text-gray-600">
-                {userProfile?.role === 'cliente' 
+                {userProfile?.role === 'cliente'
                   ? 'Gestiona tus solicitudes de servicio'
                   : 'Gestiona tu portfolio de trabajos'}
               </p>
             </div>
-            
             <Link
               href="/publicaciones/nueva"
               className="inline-flex items-center justify-center gap-2 px-4 py-3 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors active:scale-[0.98] touch-manipulation"
@@ -119,11 +112,9 @@ export default function MyPublicationsPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Aún no tienes publicaciones
-                </h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Aún no tienes publicaciones</h3>
                 <p className="text-gray-600 mb-4">
-                  {userProfile?.role === 'cliente' 
+                  {userProfile?.role === 'cliente'
                     ? 'Crea tu primera solicitud de servicio'
                     : 'Comparte tu primer trabajo realizado'}
                 </p>
@@ -142,20 +133,41 @@ export default function MyPublicationsPage() {
                 <div className="mb-4 text-sm text-gray-600">
                   {publications.length} {publications.length === 1 ? 'publicación' : 'publicaciones'}
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                  {publications.map((publication) => (
-                    <PublicationCard
-                      key={publication.id}
-                      publication={publication}
-                      onClick={() => router.push(`/publicaciones/${publication.id}`)}
-                    />
-                  ))}
-                </div>
+
+                {/* 👇 Suspense alrededor de los items que podrían usar useSearchParams */}
+                <Suspense
+                  fallback={
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                      {Array.from({ length: 6 }).map((_, i) => (
+                        <div key={i} className="h-48 bg-gray-100 animate-pulse rounded-lg" />
+                      ))}
+                    </div>
+                  }
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                    {publications.map((publication) => (
+                      <PublicationCard
+                        key={publication.id}
+                        publication={publication}
+                        onClick={() => router.push(`/publicaciones/${publication.id}`)}
+                      />
+                    ))}
+                  </div>
+                </Suspense>
               </>
             )}
           </>
         )}
       </div>
     </div>
+  );
+}
+
+export default function MyPublicationsPage() {
+  // 👇 Suspense de nivel superior por si algún hijo lee search params
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Cargando…</div>}>
+      <MyPublicationsContent />
+    </Suspense>
   );
 }

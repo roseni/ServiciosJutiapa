@@ -202,19 +202,19 @@ export default function ProposalDetailPage() {
       case 'accepted':
         return (
           <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-green-100 text-green-800">
-            ✅ Aceptada
+             Aceptada
           </span>
         );
       case 'rejected':
         return (
           <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-red-100 text-red-800">
-            ❌ Rechazada
+            Rechazada
           </span>
         );
       case 'cancelled':
         return (
           <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-            🚫 Cancelada
+           Cancelada
           </span>
         );
       default:

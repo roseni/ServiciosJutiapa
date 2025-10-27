@@ -12,6 +12,7 @@ import BottomNav from "@/components/navigation/BottomNav";
 import Link from "next/link";
 import Image from "next/image";
 import FirebaseAnalytics from "@/components/analytics/FirebaseAnalytics";
+import { Suspense } from "react";
 
 
 const geistSans = Geist({
@@ -59,7 +60,8 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="theme-color" content="#ffffff" />
       </head>
-      <body
+    <Suspense fallback={<div>Cargando...</div>}>
+<body
         className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-x-hidden pb-16`}
       >
         <header className="w-full border-b border-gray-200 bg-white sticky top-0 z-50 shadow-sm">
@@ -109,6 +111,8 @@ export default function RootLayout({
         <InstallPrompt />
         <FirebaseAnalytics />
       </body>
+    </Suspense>
+      
     </html>
   );
 }
