@@ -12,7 +12,10 @@
     "generate-icons": "node scripts/generate-icons.js"
   },
   "dependencies": {
+    "date-fns": "^4.1.0",
     "firebase": "^12.3.0",
+    "jspdf": "^3.0.3",
+    "jspdf-autotable": "^5.0.2",
     "next": "15.5.4",
     "react": "19.1.0",
     "react-dom": "19.1.0",

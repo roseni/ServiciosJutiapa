@@ -7,6 +7,9 @@ import {
   getUserProposals,
   type Proposal,
 } from '@/lib/firebase/proposals';
+import BotonExportarPDF from "../../components/propuestas/BotonExportarPDF";
+import BotonExportarPDFRecibidas from "@/components/propuestas/BotonExportarPDFRecibidas";
+
 
 export default function ProposalsPage() {
   const router = useRouter();
@@ -121,6 +124,9 @@ export default function ProposalsPage() {
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
             💼 Mis Propuestas
           </h1>
+          {/* 👉 Botón al lado del título, visible solo en “Enviadas” */}
+          {viewMode === 'sent' && <BotonExportarPDF />}
+           {viewMode === "received" && <BotonExportarPDFRecibidas />}
           
           {/* Switch Grande */}
           <div className="bg-white rounded-xl shadow-sm p-2 inline-flex gap-2">

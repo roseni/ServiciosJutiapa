@@ -1,0 +1,47 @@
+"use client";
+
+import React from "react";
+import { useAuthStore } from "@/store/authStore";
+// Si aún no arreglas el alias, usa rutas relativas:
+// import { getSentProposalsForPDF } from "../../lib/firestore/propuestas";
+// import { buildSentProposalsPDF } from "../../lib/pdf/proposals";
+import { getSentProposalsForPDF } from "@/lib/firebase/proposals";
+import { buildSentProposalsPDF } from "@/lib/pdf/proposals";
+
+type UserWithRole = { role?: "cliente" | "tecnico" };
+
+export default function BotonExportarPDF() {
+  const { user } = useAuthStore();
+  const [loading, setLoading] = React.useState(false);
+
+  const handleExport = async () => {
+    if (!user?.uid) return alert("Inicia sesión para exportar.");
+    setLoading(true);
+    try {
+      const role: "cliente" | "tecnico" =
+        ((user as unknown as UserWithRole)?.role) ?? "cliente";
+
+      const rows = await getSentProposalsForPDF(user.uid, role);
+      const doc = await buildSentProposalsPDF(
+        rows,
+        user.displayName || user.email || "Usuario"
+      );
+      doc.save("propuestas_enviadas.pdf");
+    } catch (e) {
+      console.error(e);
+      alert("Error al generar el PDF");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleExport}
+      disabled={loading}
+      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60"
+    >
+      {loading ? "Generando…" : "Exportar PDF"}
+    </button>
+  );
+}

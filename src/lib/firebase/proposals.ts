@@ -325,3 +325,147 @@ export async function getProposalsForPublication(publicationId: string): Promise
     ...doc.data(),
   })) as Proposal[];
 }
+// PDF 
+
+export type SentProposalRowForPDF = {
+  id: string;
+  servicio: string;
+  tecnico: string;
+  monto: number;
+  estado: string;
+  fecha: Date;
+};
+
+// Helpers de tipado (evitan `any`)
+function _asString(v: unknown, fallback = "—"): string {
+  return typeof v === "string" && v.trim() !== "" ? v : fallback;
+}
+function _asNumber(v: unknown, fallback = 0): number {
+  if (typeof v === "number") return v;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
+}
+function _asDate(v: unknown): Date {
+  if (v instanceof Date) return v;
+  if (v instanceof Timestamp) return v.toDate();
+  if (
+    v &&
+    typeof v === "object" &&
+    "seconds" in (v as Record<string, unknown>) &&
+    typeof (v as Record<string, unknown>).seconds === "number"
+  ) {
+    const secs = (v as { seconds: number }).seconds;
+    return new Date(secs * 1000);
+  }
+  return new Date();
+}
+
+/**
+ * Propuestas ENVIADAS por el usuario según su rol.
+ * - Cliente: createdBy == 'cliente' AND clientId == userId
+ * - Técnico: createdBy == 'tecnico' AND technicianId == userId
+ * Ordenadas por createdAt DESC.
+ */
+export async function getSentProposalsForPDF(
+  userId: string,
+  role: "cliente" | "tecnico"
+): Promise<SentProposalRowForPDF[]> {
+  const db = getDb();
+  const proposalsRef = collection(db, "proposals");
+
+  const q =
+    role === "cliente"
+      ? query(
+          proposalsRef,
+          where("createdBy", "==", "cliente"),
+          where("clientId", "==", userId),
+          orderBy("createdAt", "desc")
+        )
+      : query(
+          proposalsRef,
+          where("createdBy", "==", "tecnico"),
+          where("technicianId", "==", userId),
+          orderBy("createdAt", "desc")
+        );
+
+  const snap = await getDocs(q);
+
+  return snap.docs.map((d) => {
+    const x = d.data() as Record<string, unknown>;
+    return {
+      id: d.id,
+      servicio: _asString(x.publicationTitle ?? x.title),
+      tecnico: _asString(x.technicianName),
+      monto: _asNumber(x.budget),
+      estado: _asString(x.status ?? "pending"),
+      fecha: _asDate(x.createdAt),
+    };
+  });
+}
+
+// ===== PDF: filas para RECIBIDAS =====
+export type ReceivedProposalRowForPDF = {
+  id: string;
+  servicio: string;
+  remitente: string; // quién te la envió
+  monto: number;
+  estado: string;
+  fecha: Date;
+};
+
+// helpers si no los tienes ya
+const _s = (v: unknown, fb = "—") => (typeof v === "string" && v.trim() ? v : fb);
+const _n = (v: unknown, fb = 0) => (Number.isFinite(Number(v)) ? Number(v) : fb);
+const _d = (v: unknown) => {
+  // @ts-expect-error Timestamp friendly
+  if (v?.toDate) return v.toDate();
+  if (v instanceof Date) return v;
+  // @ts-expect-error seconds friendly
+  if (v && typeof v === "object" && typeof v.seconds === "number") {
+    // @ts-expect-error seconds friendly
+    return new Date(v.seconds * 1000);
+  }
+  return new Date();
+};
+
+/**
+ * Propuestas RECIBIDAS por el usuario según su rol.
+ * - Cliente: recibidas cuando createdBy == 'tecnico' AND clientId == userId
+ * - Técnico: recibidas cuando createdBy == 'cliente' AND technicianId == userId
+ */
+export async function getReceivedProposalsForPDF(
+  userId: string,
+  role: "cliente" | "tecnico"
+): Promise<ReceivedProposalRowForPDF[]> {
+  const db = getDb();
+  const proposalsRef = collection(db, "proposals");
+
+  const q =
+    role === "cliente"
+      ? query(
+          proposalsRef,
+          where("createdBy", "==", "tecnico"),
+          where("clientId", "==", userId),
+          orderBy("createdAt", "desc")
+        )
+      : query(
+          proposalsRef,
+          where("createdBy", "==", "cliente"),
+          where("technicianId", "==", userId),
+          orderBy("createdAt", "desc")
+        );
+
+  const snap = await getDocs(q);
+
+  return snap.docs.map((d) => {
+    const x = d.data() as Record<string, unknown>;
+    return {
+      id: d.id,
+      servicio: _s(x.publicationTitle ?? x.title),
+      remitente: role === "cliente" ? _s(x.technicianName) : _s(x.clientName),
+      monto: _n(x.budget),
+      estado: _s(x.status ?? "pending"),
+      fecha: _d(x.createdAt),
+    };
+  });
+}
