@@ -429,9 +429,9 @@ const _d = (v: unknown) => {
 };
 
 /**
- * Propuestas RECIBIDAS por el usuario según su rol.
- * - Cliente: recibidas cuando createdBy == 'tecnico' AND clientId == userId
- * - Técnico: recibidas cuando createdBy == 'cliente' AND technicianId == userId
+ * Propuestas RECIBIDAS por el usuario (misma lógica que la UI):
+ * - Trae TODO lo del usuario por dueño (clientId/technicianId) + orderBy.
+ * - Filtra en memoria: createdBy !== role.
  */
 export async function getReceivedProposalsForPDF(
   userId: string,
@@ -440,29 +440,30 @@ export async function getReceivedProposalsForPDF(
   const db = getDb();
   const proposalsRef = collection(db, "proposals");
 
+  // 1) Trae todo por dueño (sin filtrar createdBy en Firestore)
   const q =
     role === "cliente"
-      ? query(
-          proposalsRef,
-          where("createdBy", "==", "tecnico"),
-          where("clientId", "==", userId),
-          orderBy("createdAt", "desc")
-        )
-      : query(
-          proposalsRef,
-          where("createdBy", "==", "cliente"),
-          where("technicianId", "==", userId),
-          orderBy("createdAt", "desc")
-        );
+      ? query(proposalsRef, where("clientId", "==", userId), orderBy("createdAt", "desc"))
+      : query(proposalsRef, where("technicianId", "==", userId), orderBy("createdAt", "desc"));
 
   const snap = await getDocs(q);
 
-  return snap.docs.map((d) => {
+  // 2) "Recibidas" = las que NO creó mi propio rol
+  const docs = snap.docs.filter((d) => {
     const x = d.data() as Record<string, unknown>;
+    const createdBy = String(x.createdBy ?? "");
+    return createdBy !== role;
+  });
+
+  // 3) Map a filas PDF (sin campos vacíos)
+  return docs.map((d) => {
+    const x = d.data() as Record<string, unknown>;
+    const createdBy = String(x.createdBy ?? "");
     return {
       id: d.id,
       servicio: _s(x.publicationTitle ?? x.title),
-      remitente: role === "cliente" ? _s(x.technicianName) : _s(x.clientName),
+      remitente:
+        createdBy === "cliente" ? _s(x.clientName ?? "—") : _s(x.technicianName ?? "—"),
       monto: _n(x.budget),
       estado: _s(x.status ?? "pending"),
       fecha: _d(x.createdAt),

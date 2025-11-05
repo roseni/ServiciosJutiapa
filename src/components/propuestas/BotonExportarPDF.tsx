@@ -4,14 +4,13 @@ import React from "react";
 import { useAuthStore } from "@/store/authStore";
 // Si aún no arreglas el alias, usa rutas relativas:
 // import { getSentProposalsForPDF } from "../../lib/firestore/propuestas";
-// import { buildSentProposalsPDF } from "../../lib/pdf/proposals";
+// import { buildSentProposalsPDF } from "../../lib/pdf/propuestas";
 import { getSentProposalsForPDF } from "@/lib/firebase/proposals";
 import { buildSentProposalsPDF } from "@/lib/pdf/proposals";
 
-type UserWithRole = { role?: "cliente" | "tecnico" };
 
 export default function BotonExportarPDF() {
-  const { user } = useAuthStore();
+  const { user, userProfile } = useAuthStore();
   const [loading, setLoading] = React.useState(false);
 
   const handleExport = async () => {
@@ -19,7 +18,7 @@ export default function BotonExportarPDF() {
     setLoading(true);
     try {
       const role: "cliente" | "tecnico" =
-        ((user as unknown as UserWithRole)?.role) ?? "cliente";
+  (userProfile?.role as "cliente" | "tecnico") ?? "cliente";
 
       const rows = await getSentProposalsForPDF(user.uid, role);
       const doc = await buildSentProposalsPDF(

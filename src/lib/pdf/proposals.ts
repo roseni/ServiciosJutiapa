@@ -1,7 +1,8 @@
-// src/lib/pdf/proposals.ts
+"use client";
+
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-// ✅ Solo tipos (no generan bundle)
+//  Solo tipos (no generan bundle)
 import type { jsPDF as JsPDFType } from "jspdf";
 import type { UserOptions as AutoTableOptions } from "jspdf-autotable";
 
@@ -14,7 +15,7 @@ export type SentProposalRow = {
   fecha: Date;
 };
 
-// ✅ Extendemos el tipo de jsPDF para incluir lo que añade el plugin
+//  Extendemos el tipo de jsPDF para incluir lo que añade el plugin
 type JsPDFWithAutoTable = JsPDFType & {
   autoTable: (options: AutoTableOptions) => void;
   lastAutoTable?: { finalY: number };
@@ -33,9 +34,9 @@ export async function buildSentProposalsPDF(
   rows: SentProposalRow[],
   userName?: string
 ): Promise<JsPDFType> {
-  // ✅ jspdf v3: default import
+  // jspdf v3: default import
   const JsPDF = (await import("jspdf")).default;
-  // ✅ autotable como función (no side-effect)
+  // autotable como función (no side-effect)
   const autoTable = (await import("jspdf-autotable")).default;
 
   const doc = new JsPDF({ unit: "pt", format: "a4" }) as JsPDFWithAutoTable;
@@ -58,7 +59,7 @@ export async function buildSentProposalsPDF(
     format(r.fecha, "Pp", { locale: es }),
   ]);
 
-  // ✅ v3: usar la función autoTable(doc, options)
+  // v3: usar la función autoTable(doc, options)
   autoTable(doc, {
   startY: 100,
   head: [["Servicio", "Técnico", "Monto (Q)", "Estado", "Fecha"]],
