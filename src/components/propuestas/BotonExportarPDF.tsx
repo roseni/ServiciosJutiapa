@@ -2,9 +2,7 @@
 
 import React from "react";
 import { useAuthStore } from "@/store/authStore";
-// Si aún no arreglas el alias, usa rutas relativas:
-// import { getSentProposalsForPDF } from "../../lib/firestore/propuestas";
-// import { buildSentProposalsPDF } from "../../lib/pdf/propuestas";
+
 import { getSentProposalsForPDF } from "@/lib/firebase/proposals";
 import { buildSentProposalsPDF } from "@/lib/pdf/proposals";
 
