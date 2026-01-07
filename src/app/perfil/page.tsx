@@ -10,12 +10,16 @@ import Link from 'next/link';
 import React from 'react';
 import StarRating from '@/components/reviews/StarRating';
 import Avatar from '@/components/common/Avatar';
+import ActivarUbicacion from "@/components/tecnicos/ActivarUbicacion";
+
+
 
 export default function PerfilPage() {
   const { user, userProfile, ensureSubscribed, refreshUserProfile } = useAuthStore();
   const router = useRouter();
   const [mounted, setMounted] = React.useState(false);
   const [signingOut, setSigningOut] = React.useState(false);
+  const tecnicoId = user?.uid ?? null;
   
   // Estado de edición
   const [isEditing, setIsEditing] = React.useState(false);
@@ -228,7 +232,7 @@ export default function PerfilPage() {
                 fallback={getInitials()}
                 size="xl"
               />
-            </div>
+            </div>          
 
             {/* Nombre y rol */}
             <div className="flex-1 text-center sm:text-left">
@@ -258,7 +262,7 @@ export default function PerfilPage() {
               )}
             </div>
           </div>
-        </div>
+        </div>   
 
         {/* Información de contacto */}
         <div className="bg-white rounded-lg shadow-sm p-6 sm:p-8 mb-4">
@@ -312,6 +316,10 @@ export default function PerfilPage() {
             </div>
           </div>
         </div>
+               <div>
+      <h1>Mi Perfil de Técnico</h1>
+      {tecnicoId && <ActivarUbicacion tecnicoId={tecnicoId} />}
+    </div>
 
         {/* Información de cuenta */}
         <div className="bg-white rounded-lg shadow-sm p-6 sm:p-8 mb-4">

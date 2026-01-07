@@ -4,6 +4,7 @@ import React from 'react';
 import { getAllTechnicians, type PublicTechnicianProfile } from '@/lib/firebase/technicians';
 import { ALL_SKILLS } from '@/lib/constants/skills';
 import TechnicianCard from '@/components/tecnicos/TechnicianCard';
+import MapaTecnico from "@/components/tecnicos/MapaTecnico";
 
 export default function TecnicosPage() {
   const [technicians, setTechnicians] = React.useState<PublicTechnicianProfile[]>([]);
@@ -191,6 +192,11 @@ export default function TecnicosPage() {
           </div>
         )}
 
+        {/*  MAPA  */}
+      <div className="mb-6" style={{ height: "250px" }}>
+        <MapaTecnico />
+      </div>
+
         {/* Lista de técnicos */}
         {filteredTechnicians.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
@@ -214,6 +220,7 @@ export default function TecnicosPage() {
               <TechnicianCard key={technician.uid} technician={technician} />
             ))}
           </div>
+          
         )}
       </div>
     </div>
