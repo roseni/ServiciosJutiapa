@@ -44,10 +44,10 @@ export default function MapaTecnico() {
       const { latitude, longitude, accuracy } = pos.coords;
       const roundedAccuracy = Math.round(accuracy);
 
-      // ❌ Rechazar ubicaciones malas
+      //  Rechazar ubicaciones malas
       if (accuracy > 100) {
         setStatus(
-          `📡 Señal GPS débil (${roundedAccuracy} m). Activa ubicación precisa`
+          ` Señal GPS débil (${roundedAccuracy} m). Activa ubicación precisa`
         );
         return;
       }
@@ -56,11 +56,11 @@ export default function MapaTecnico() {
       const latLng = L.latLng(latitude, longitude);
 
       if (!JUTIAPA_BOUNDS.contains(latLng)) {
-        setStatus("⚠️ Ubicación fuera de Jutiapa");
+        setStatus(" Ubicación fuera de Jutiapa");
         return;
       }
 
-      setStatus(`📍 Técnico localizado — precisión ${roundedAccuracy} m`);
+      setStatus(` Técnico localizado — precisión ${roundedAccuracy} m`);
 
       if (!leafletMap.current) return;
 
@@ -117,7 +117,7 @@ export default function MapaTecnico() {
       <div
         style={{
           position: "absolute",
-          zIndex: 1000,
+          zIndex: 500,
           background: "#fff",
           margin: "10px",
           padding: "8px 12px",
