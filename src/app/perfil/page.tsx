@@ -11,6 +11,7 @@ import React from 'react';
 import StarRating from '@/components/reviews/StarRating';
 import Avatar from '@/components/common/Avatar';
 import ActivarUbicacion from "@/components/tecnicos/ActivarUbicacion";
+import MapaTecnico from "@/components/tecnicos/MapaTecnico";
 
 
 
@@ -320,6 +321,10 @@ export default function PerfilPage() {
       <h1>Mi Perfil de Técnico</h1>
       {tecnicoId && <ActivarUbicacion tecnicoId={tecnicoId} />}
     </div>
+{/*  MAPA  */}
+      <div className="mb-6" style={{ height: "250px" }}>
+        <MapaTecnico />
+      </div>
 
         {/* Información de cuenta */}
         <div className="bg-white rounded-lg shadow-sm p-6 sm:p-8 mb-4">
