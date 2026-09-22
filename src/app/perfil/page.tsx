@@ -3,6 +3,7 @@
 import { useAuthStore } from '@/store/authStore';
 import { signOutCurrentUser } from '@/lib/firebase/auth';
 import { updateUserProfile } from '@/lib/firebase/profile';
+import { uploadDpiPhoto } from '@/lib/firebase/dpi';//nuevo
 import { getUserRatingStats, getReviewsForUser, type Review } from '@/lib/firebase/reviews';
 import { SKILL_CATEGORIES, searchSkills } from '@/lib/constants/skills';
 import { useRouter } from 'next/navigation';
@@ -10,8 +11,7 @@ import Link from 'next/link';
 import React from 'react';
 import StarRating from '@/components/reviews/StarRating';
 import Avatar from '@/components/common/Avatar';
-import ActivarUbicacion from "@/components/tecnicos/ActivarUbicacion";
-import MapaTecnico from "@/components/tecnicos/MapaTecnico";
+import ActivarUbicacion from "@/components/tecnicos/ActivarUbicacion";//nuevo
 
 
 
@@ -26,6 +26,7 @@ export default function PerfilPage() {
   const [isEditing, setIsEditing] = React.useState(false);
   const [bio, setBio] = React.useState('');
   const [skills, setSkills] = React.useState<string[]>([]);
+  const [uploadingDpi, setUploadingDpi] = React.useState(false);//nuevo
   const [skillSearch, setSkillSearch] = React.useState('');
   const [showSkillDropdown, setShowSkillDropdown] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
@@ -49,6 +50,50 @@ export default function PerfilPage() {
       setSkills(userProfile.skills || []);
     }
   }, [userProfile]);
+//nuevo
+    const handleDpiPhotoChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+
+    if (!file || !user) return;
+
+    // Verificar que sea una imagen
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor selecciona una imagen válida.');
+      return;
+    }
+
+    // Verificar tamaño máximo de 5 MB
+    if (file.size > 5 * 1024 * 1024) {
+      alert('La fotografía no puede superar los 5 MB.');
+      return;
+    }
+
+    try {
+      setUploadingDpi(true);
+
+      // 1. Subir la fotografía a Firebase Storage
+      const dpiFotoUrl = await uploadDpiPhoto(user.uid, file);
+      // 2. Guardar la URL en el perfil de Firestore
+      await updateUserProfile(user.uid, {
+        dpiFotoUrl,
+      });
+
+      // 3. Actualizar el perfil mostrado en la aplicación
+      await refreshUserProfile();
+
+      alert('Fotografía del DPI guardada correctamente.');
+    } catch (error) {
+      console.error('Error al subir fotografía del DPI:', error);
+      alert('No se pudo guardar la fotografía del DPI.');
+    } finally {
+      setUploadingDpi(false);
+
+      // Permite volver a seleccionar incluso la misma fotografía
+      event.target.value = '';
+    }
+  }; //fin de nuevo
 
   // Cargar calificaciones del usuario
   React.useEffect(() => {
@@ -317,13 +362,47 @@ export default function PerfilPage() {
             </div>
           </div>
         </div>
-               <div>
-      <h1>Mi Perfil de Técnico</h1>
+    {/* nuevo
+    <div>
+      <h1>Mi Perfil /h1>
       {tecnicoId && <ActivarUbicacion tecnicoId={tecnicoId} />}
-    </div>
-{/*  MAPA  */}
-      <div className="mb-6" style={{ height: "250px" }}>
-        <MapaTecnico />
+    </div>*/}
+
+      {/* Fotografía del DPI */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          Fotografía del DPI
+        </h2>
+
+        {userProfile?.dpiFotoUrl && (
+          <div className="mb-4">
+            <img
+              src={userProfile.dpiFotoUrl}
+              alt="Fotografía del DPI"
+              className="w-full max-w-md h-auto max-h-64 object-contain rounded-lg border border-gray-200"
+            />
+          </div>
+        )}
+
+        <label
+          htmlFor="dpi-photo"
+          className="inline-flex items-center justify-center gap-2 px-4 py-3 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors cursor-pointer"
+        >
+          {uploadingDpi
+            ? 'Subiendo fotografía...'
+            : userProfile?.dpiFotoUrl
+              ? 'Cambiar fotografía'
+              : 'Agregar fotografía del DPI'}
+        </label>
+
+        <input
+          id="dpi-photo"
+          type="file"
+          accept="image/*"
+          onChange={handleDpiPhotoChange}
+          disabled={uploadingDpi}
+          className="hidden"
+        />
       </div>
 
         {/* Información de cuenta */}
@@ -342,8 +421,8 @@ export default function PerfilPage() {
                 Método de Autenticación
               </label>
               <p className="text-base sm:text-lg text-gray-900">
-                {userProfile.provider === 'google.com' && '🔐 Google'}
-                {userProfile.provider === 'password' && '🔑 Email y contraseña'}
+                {userProfile.provider === 'google.com' && 'Google'}
+                {userProfile.provider === 'password' && 'Email y contraseña'}
                 {!userProfile.provider && 'No especificado'}
               </p>
             </div>

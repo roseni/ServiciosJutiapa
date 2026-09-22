@@ -38,7 +38,7 @@ export default function ActivarUbicacion({ tecnicoId }: Props) {
           setStatus("✔ Ubicación activada correctamente");
         } catch (err) {
           console.error(err);
-          setStatus("❌ Error al guardar la ubicación");
+          setStatus("Error al guardar la ubicación");
         }
       },
       (err) => {
@@ -57,10 +57,10 @@ export default function ActivarUbicacion({ tecnicoId }: Props) {
       });
 
       setIsActive(false); // 🔹
-      setStatus("🚫 Ubicación desactivada");
+      setStatus("Ubicación desactivada");
     } catch (err) {
       console.error(err);
-      setStatus("❌ Error al desactivar la ubicación");
+      setStatus("Error al desactivar la ubicación");
     }
   };
 

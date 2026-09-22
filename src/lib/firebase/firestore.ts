@@ -50,6 +50,7 @@ export type UserProfile = {
   // Datos de perfil editables
   bio?: string | null; // Biografía del usuario
   skills?: string[] | null; // Habilidades/especialidades
+  dpiFotoUrl?: string | null; // URL de la fotografía del DPI del usuario
   // Estadísticas de calificación
   averageRating?: number;
   totalReviews?: number;

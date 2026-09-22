@@ -6,6 +6,7 @@ import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 export type UpdateProfileData = {
   bio?: string | null;
   skills?: string[];
+  dpiFotoUrl?: string | null;
 };
 
 /**
@@ -28,6 +29,9 @@ export async function updateUserProfile(
       ...(data.skills !== undefined && {
         skills: data.skills.length > 0 ? data.skills : null,
       }),
+      ...(data.dpiFotoUrl !== undefined && {
+       dpiFotoUrl: data.dpiFotoUrl,
+  }),
     };
 
     await updateDoc(userRef, updateData);

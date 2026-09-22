@@ -96,7 +96,7 @@ export default function MapaTecnico() {
     };
 
     const handleError = (err: GeolocationPositionError) => {
-      setStatus(`❌ Error GPS: ${err.message}`);
+      setStatus(`Error GPS: ${err.message}`);
       console.error(err);
     };
 
@@ -108,7 +108,7 @@ export default function MapaTecnico() {
       );
       return () => navigator.geolocation.clearWatch(watchId);
     } else {
-      setStatus("❌ Geolocalización no disponible");
+      setStatus("Geolocalización no disponible");
     }
   }, []);
 

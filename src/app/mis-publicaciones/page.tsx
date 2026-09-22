@@ -134,7 +134,7 @@ function MyPublicationsContent() {
                   {publications.length} {publications.length === 1 ? 'publicación' : 'publicaciones'}
                 </div>
 
-                {/* 👇 Suspense alrededor de los items que podrían usar useSearchParams */}
+                {/*Suspense alrededor de los items que podrían usar useSearchParams */}
                 <Suspense
                   fallback={
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">

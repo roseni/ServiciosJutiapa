@@ -11,6 +11,8 @@ import {
   getDoc,
 } from "firebase/firestore";
 import type { UserProfile } from "./firestore";
+import { updateDoc } from "firebase/firestore";
+
 
 /**
  * Perfil público de técnico (sin datos sensibles)
@@ -22,6 +24,7 @@ export type PublicTechnicianProfile = {
   photoURL?: string | null;
   bio?: string | null;
   skills?: string[];
+  dpiFotoUrl?: string | null;
   role: 'tecnico';
   
   // Estadísticas de calificación
@@ -40,6 +43,7 @@ export type PublicClientProfile = {
   fullName?: string | null;
   photoURL?: string | null;
   bio?: string | null;
+  dpiFotoUrl?: string | null;
   role: 'cliente';
   
   // Estadísticas de calificación
@@ -156,6 +160,7 @@ export async function getPublicTechnicianProfile(uid: string): Promise<PublicTec
     photoURL: data.photoURL,
     bio: data.bio,
     skills: data.skills || [],
+    dpiFotoUrl: data.dpiFotoUrl,
     role: 'tecnico' as const,
     averageRating: data.averageRating || 0,
     totalReviews: data.totalReviews || 0,
@@ -229,8 +234,31 @@ export async function getPublicClientProfile(uid: string): Promise<PublicClientP
     fullName: data.fullName,
     photoURL: data.photoURL,
     bio: data.bio,
+    dpiFotoUrl: data.dpiFotoUrl,
     role: 'cliente' as const,
     averageRating: data.averageRating || 0,
     totalReviews: data.totalReviews || 0,
   };
+}
+
+/**
+ * Actualiza la ubicación del técnico en Firestore.
+ * @param uid ID del técnico (igual al ID del documento en "users")
+ * @param lat Latitud actual
+ * @param lng Longitud actual
+ */
+export async function updateTechnicianLocation(uid: string, lat: number, lng: number) {
+  const db = getDb();
+  const ref = doc(db, "users", uid); // O "technicians" si tu colección es distinta
+
+  try {
+    await updateDoc(ref, {
+      location: { lat, lng },
+      updatedAt: new Date(),
+    });
+    console.log("Ubicación actualizada correctamente");
+  } catch (error) {
+    console.error("Error al actualizar la ubicación del técnico:", error);
+    throw error;
+  }
 }

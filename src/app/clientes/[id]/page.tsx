@@ -77,7 +77,7 @@ export default function ClientPublicProfilePage() {
       <div className="min-h-screen bg-gray-50 py-8 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-            <div className="text-6xl mb-4">😕</div>
+            <div className="text-6xl mb-4"> </div>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
               {error || 'Cliente no encontrado'}
             </h2>
@@ -136,7 +136,7 @@ export default function ClientPublicProfilePage() {
               </h1>
               <div className="flex items-center justify-center sm:justify-start gap-2 mb-3">
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                  👤 Cliente
+                  Cliente
                 </span>
               </div>
 
@@ -152,6 +152,23 @@ export default function ClientPublicProfilePage() {
             </div>
           </div>
         </div>
+
+          {/* Fotografía del DPI */}
+          {client.dpiFotoUrl && (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Fotografía del DPI
+              </h2>
+
+              <div className="flex justify-center">
+                <img
+                  src={client.dpiFotoUrl}
+                  alt="Fotografía del DPI"
+                  className="w-full max-w-md max-h-72 object-contain rounded-lg border border-gray-200"
+                />
+              </div>
+            </div>
+          )}
 
         {/* Biografía */}
         {client.bio && (

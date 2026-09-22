@@ -8,6 +8,9 @@ import { getReviewsForUser, type Review } from '@/lib/firebase/reviews';
 import { getUserPublications, type Publication } from '@/lib/firebase/publications';
 import StarRating from '@/components/reviews/StarRating';
 import Link from 'next/link';
+import MapaTecnico from "@/components/tecnicos/MapaTecnico";
+import EstadoTecnico from '@/components/tecnicos/EstadoTecnico';
+
 
 export default function TechnicianPublicProfilePage() {
   const params = useParams();
@@ -20,6 +23,7 @@ export default function TechnicianPublicProfilePage() {
   const [publications, setPublications] = React.useState<Publication[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [isEditing, setIsEditing] = React.useState(false);
 
   React.useEffect(() => {
     const loadTechnicianData = async () => {
@@ -86,7 +90,7 @@ export default function TechnicianPublicProfilePage() {
       <div className="min-h-screen bg-gray-50 py-8 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-            <div className="text-6xl mb-4">😕</div>
+            <div className="text-6xl mb-4"></div>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
               {error || 'Técnico no encontrado'}
             </h2>
@@ -104,6 +108,10 @@ export default function TechnicianPublicProfilePage() {
 
   const hasRating = technician.totalReviews && technician.totalReviews > 0;
   const isClient = userProfile?.role === 'cliente';
+
+  const isOwnerTechnician =
+  userProfile?.role === "tecnico" &&
+  userProfile?.uid === technicianId;
 
   return (
     <div className="min-h-screen bg-gray-50 py-6 sm:py-8 px-4">
@@ -150,6 +158,13 @@ export default function TechnicianPublicProfilePage() {
                 </span>
               </div>
 
+            {isOwnerTechnician && (
+              <div className="mt-3">
+                <p>BOTÓN DE ESTADO DEBERÍA ESTAR AQUÍ</p>
+                <EstadoTecnico tecnicoId={technicianId} />
+              </div>
+            )}
+
               {/* Calificación */}
               {hasRating ? (
                 <div className="flex items-center justify-center sm:justify-start gap-2 mb-4">
@@ -175,6 +190,24 @@ export default function TechnicianPublicProfilePage() {
             </div>
           </div>
         </div>
+      
+          
+          {/* Fotografía del DPI */}
+          {technician.dpiFotoUrl && (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Fotografía del DPI
+              </h2> 
+
+              <div className="flex justify-center">
+                <img
+                  src={technician.dpiFotoUrl}
+                  alt="Fotografía del DPI"
+                  className="w-full max-w-md max-h-72 object-contain rounded-lg border border-gray-200"
+                />
+              </div>
+            </div>
+          )}
 
         {/* Biografía */}
         {technician.bio && (
