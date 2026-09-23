@@ -363,9 +363,8 @@ export default function PerfilPage() {
           </div>
         </div>
         
-    {/* nuevo */}
-    <div>
-      <h1>Mi Perfil </h1>
+    {/* nuevo */} 
+     <div>
       {tecnicoId && <ActivarUbicacion tecnicoId={tecnicoId} />}
     </div>
 

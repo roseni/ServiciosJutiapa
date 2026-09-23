@@ -140,6 +140,26 @@ export default function ClientPublicProfilePage() {
                 </span>
               </div>
 
+            {/* FotoDPI */}
+            {client?.dpiFotoUrl ? (
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                    DPI del cliente
+                  </h2>
+                <div className="flex justify-center">
+                  <img
+                    src={client.dpiFotoUrl}
+                    alt="DPI del cliente"
+                    className="w-full max-w-md max-h-72 object-contain rounded-lg border border-gray-200"
+                  />
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">
+                  El cliente no tiene una fotografía de DPI registrada.
+                </p>
+              )}
+
               {/* Calificación */}
               {hasRating && (
                 <div className="flex items-center justify-center sm:justify-start gap-2 mb-4">
@@ -154,7 +174,7 @@ export default function ClientPublicProfilePage() {
         </div>
 
           {/* Fotografía del DPI */}
-          {client.dpiFotoUrl && (
+          {client?.dpiFotoUrl && (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
                 Fotografía del DPI

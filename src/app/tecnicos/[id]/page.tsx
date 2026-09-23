@@ -12,6 +12,7 @@ import MapaTecnico from "@/components/tecnicos/MapaTecnico";
 
 
 
+
 export default function TechnicianPublicProfilePage() {
   const params = useParams();
   const router = useRouter();
@@ -109,7 +110,7 @@ export default function TechnicianPublicProfilePage() {
   const hasRating = technician.totalReviews && technician.totalReviews > 0;
   const isClient = userProfile?.role === 'cliente';
 
-
+  
   return (
     <div className="min-h-screen bg-gray-50 py-6 sm:py-8 px-4">
       <div className="max-w-4xl mx-auto">
