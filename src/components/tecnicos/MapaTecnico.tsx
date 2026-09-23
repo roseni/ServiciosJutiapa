@@ -2,118 +2,125 @@
 
 import { useEffect, useRef, useState } from "react";
 import L, { Map as LeafletMap, Marker } from "leaflet";
+import { doc, onSnapshot } from "firebase/firestore";
+import { getDb } from "@/lib/firebase/firestore";
 import "leaflet/dist/leaflet.css";
 
 const JUTIAPA_CENTER: [number, number] = [14.2916, -89.8956];
+
 const JUTIAPA_BOUNDS = L.latLngBounds(
   [13.9, -90.3],
   [14.6, -89.4]
 );
 
-export default function MapaTecnico() {
+interface Props {
+  tecnicoId: string;
+}
+
+export default function MapaTecnico({ tecnicoId }: Props) {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const leafletMap = useRef<LeafletMap | null>(null);
   const markerRef = useRef<Marker | null>(null);
-  const accuracyCircleRef = useRef<L.Circle | null>(null);
 
-  const [status, setStatus] = useState("Esperando señal GPS…");
+  const [status, setStatus] = useState("Buscando ubicación del técnico...");
 
   useEffect(() => {
-    // Inicializar mapa
-    if (mapRef.current && !leafletMap.current) {
-      leafletMap.current = L.map(mapRef.current, {
-        center: JUTIAPA_CENTER,
-        zoom: 12,
-        maxBounds: JUTIAPA_BOUNDS,
-        maxBoundsViscosity: 1,
-      });
+    if (!mapRef.current || leafletMap.current) return;
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        attribution: "© OpenStreetMap",
-      }).addTo(leafletMap.current);
-    }
+    // Crear mapa
+    leafletMap.current = L.map(mapRef.current, {
+      center: JUTIAPA_CENTER,
+      zoom: 12,
+      maxBounds: JUTIAPA_BOUNDS,
+      maxBoundsViscosity: 1,
+    });
 
-    const options: PositionOptions = {
-      enableHighAccuracy: true,
-      timeout: 20000,
-      maximumAge: 0,
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "© OpenStreetMap",
+    }).addTo(leafletMap.current);
+
+    return () => {
+      leafletMap.current?.remove();
+      leafletMap.current = null;
     };
-
-    const handleSuccess = (pos: GeolocationPosition) => {
-      const { latitude, longitude, accuracy } = pos.coords;
-      const roundedAccuracy = Math.round(accuracy);
-
-      //  Rechazar ubicaciones malas
-      if (accuracy > 100) {
-        setStatus(
-          ` Señal GPS débil (${roundedAccuracy} m). Activa ubicación precisa`
-        );
-        return;
-      }
-
-      // Verificar Jutiapa
-      const latLng = L.latLng(latitude, longitude);
-
-      if (!JUTIAPA_BOUNDS.contains(latLng)) {
-        setStatus(" Ubicación fuera de Jutiapa");
-        return;
-      }
-
-      setStatus(` Técnico localizado — precisión ${roundedAccuracy} m`);
-
-      if (!leafletMap.current) return;
-
-      // Zoom según precisión
-      const zoom =
-        accuracy < 20 ? 18 :
-        accuracy < 50 ? 17 :
-        accuracy < 100 ? 16 : 15;
-
-      leafletMap.current.setView([latitude, longitude], zoom);
-
-      // Marcador
-      if (!markerRef.current) {
-        markerRef.current = L.marker([latitude, longitude])
-          .addTo(leafletMap.current)
-          .bindPopup("Técnico");
-      } else {
-        markerRef.current.setLatLng([latitude, longitude]);
-      }
-
-      // Círculo de precisión
-      if (!accuracyCircleRef.current) {
-        accuracyCircleRef.current = L.circle([latitude, longitude], {
-          radius: accuracy,
-          color: "#2563eb",
-          fillColor: "#3b82f6",
-          fillOpacity: 0.25,
-        }).addTo(leafletMap.current);
-      } else {
-        accuracyCircleRef.current.setLatLng([latitude, longitude]);
-        accuracyCircleRef.current.setRadius(accuracy);
-      }
-    };
-
-    const handleError = (err: GeolocationPositionError) => {
-      setStatus(`Error GPS: ${err.message}`);
-      console.error(err);
-    };
-
-    if ("geolocation" in navigator) {
-      const watchId = navigator.geolocation.watchPosition(
-        handleSuccess,
-        handleError,
-        options
-      );
-      return () => navigator.geolocation.clearWatch(watchId);
-    } else {
-      setStatus("Geolocalización no disponible");
-    }
   }, []);
 
+  useEffect(() => {
+    if (!tecnicoId) return;
+
+    const db = getDb();
+    const tecnicoRef = doc(db, "users", tecnicoId);
+
+    // Escuchar cambios de ubicación del técnico
+    const unsubscribe = onSnapshot(
+      tecnicoRef,
+      (snapshot) => {
+        if (!snapshot.exists()) {
+          setStatus("Técnico no encontrado");
+          return;
+        }
+
+        const data = snapshot.data();
+
+        const location = data.location;
+
+        if (
+          !location ||
+          typeof location.lat !== "number" ||
+          typeof location.lng !== "number"
+        ) {
+          setStatus("El técnico no ha compartido su ubicación");
+          return;
+        }
+
+        const latitude = location.lat;
+        const longitude = location.lng;
+
+        const latLng = L.latLng(latitude, longitude);
+
+        if (!JUTIAPA_BOUNDS.contains(latLng)) {
+          setStatus("La ubicación del técnico está fuera de Jutiapa");
+          return;
+        }
+
+        if (!leafletMap.current) return;
+
+        // Centrar mapa en el técnico
+        leafletMap.current.setView(
+          [latitude, longitude],
+          17
+        );
+
+        // Crear marcador
+        if (!markerRef.current) {
+          markerRef.current = L.marker([
+            latitude,
+            longitude,
+          ])
+            .addTo(leafletMap.current)
+            .bindPopup("📍 Técnico");
+        } else {
+          // Actualizar posición
+          markerRef.current.setLatLng([
+            latitude,
+            longitude,
+          ]);
+        }
+
+        setStatus("📍 Ubicación del técnico actualizada");
+      },
+      (error) => {
+        console.error("Error escuchando ubicación:", error);
+        setStatus("Error al obtener la ubicación del técnico");
+      }
+    );
+
+    return () => unsubscribe();
+  }, [tecnicoId]);
+
   return (
-    <>
+    <div className="relative w-full h-full">
       <div
         style={{
           position: "absolute",
@@ -129,7 +136,14 @@ export default function MapaTecnico() {
         {status}
       </div>
 
-      <div ref={mapRef} style={{ width: "100%", height: "35vh" }} />
-    </>
+      <div
+        ref={mapRef}
+        style={{
+          width: "100%",
+          height: "100%",
+          minHeight: "250px",
+        }}
+      />
+    </div>
   );
 }

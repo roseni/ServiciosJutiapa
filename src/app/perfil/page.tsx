@@ -362,11 +362,12 @@ export default function PerfilPage() {
             </div>
           </div>
         </div>
-    {/* nuevo
+        
+    {/* nuevo */}
     <div>
-      <h1>Mi Perfil /h1>
+      <h1>Mi Perfil </h1>
       {tecnicoId && <ActivarUbicacion tecnicoId={tecnicoId} />}
-    </div>*/}
+    </div>
 
       {/* Fotografía del DPI */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">

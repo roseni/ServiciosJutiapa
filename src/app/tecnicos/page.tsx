@@ -103,10 +103,10 @@ export default function TecnicosPage() {
           </p>
         </div>
 
-  {/*  MAPA  */}
+  {/*  MAPA  
       <div className="mb-6" style={{ height: "250px" }}>
         <MapaTecnico />
-      </div>
+      </div>*/}
 
         {/* Filtros */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 mb-6">

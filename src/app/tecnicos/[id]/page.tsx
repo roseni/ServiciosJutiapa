@@ -9,7 +9,7 @@ import { getUserPublications, type Publication } from '@/lib/firebase/publicatio
 import StarRating from '@/components/reviews/StarRating';
 import Link from 'next/link';
 import MapaTecnico from "@/components/tecnicos/MapaTecnico";
-import EstadoTecnico from '@/components/tecnicos/EstadoTecnico';
+
 
 
 export default function TechnicianPublicProfilePage() {
@@ -109,9 +109,6 @@ export default function TechnicianPublicProfilePage() {
   const hasRating = technician.totalReviews && technician.totalReviews > 0;
   const isClient = userProfile?.role === 'cliente';
 
-  const isOwnerTechnician =
-  userProfile?.role === "tecnico" &&
-  userProfile?.uid === technicianId;
 
   return (
     <div className="min-h-screen bg-gray-50 py-6 sm:py-8 px-4">
@@ -158,13 +155,6 @@ export default function TechnicianPublicProfilePage() {
                 </span>
               </div>
 
-            {isOwnerTechnician && (
-              <div className="mt-3">
-                <p>BOTÓN DE ESTADO DEBERÍA ESTAR AQUÍ</p>
-                <EstadoTecnico tecnicoId={technicianId} />
-              </div>
-            )}
-
               {/* Calificación */}
               {hasRating ? (
                 <div className="flex items-center justify-center sm:justify-start gap-2 mb-4">
@@ -190,10 +180,10 @@ export default function TechnicianPublicProfilePage() {
             </div>
           </div>
         </div>
-         {/*  si no quiero mostrar el mapa quito eso */}
+         {/*  mostrar mapa*/}
         {/*  MAPA  */}
       <div className="mb-6" style={{ height: "250px" }}>
-        <MapaTecnico />
+        <MapaTecnico tecnicoId={technicianId}/>
       </div>
 
       {/* Ubicación del tecnico */}
