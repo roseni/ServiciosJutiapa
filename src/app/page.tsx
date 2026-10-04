@@ -65,7 +65,7 @@ export default function Home() {
                 <h2 className="text-2xl font-bold text-gray-900">Mi Perfil</h2>
               </div>
               <p className="text-gray-600 mb-4">
-                Ve y edita tu información personal, biografía y habilidades. Gestiona tu cuenta.
+                Edita tu información personal, biografía y habilidades. Recuerda que tu perfil es la primera impresión que los clientes y técnicos tendrán de ti.
               </p>
               <div className="flex items-center text-green-600 font-medium group-hover:gap-2 transition-all">
                 Ver perfil
@@ -83,7 +83,7 @@ export default function Home() {
             <div className="text-3xl font-bold text-blue-600 mb-2">👤</div>
             <h3 className="font-semibold text-gray-900 mb-1">Clientes</h3>
             <p className="text-sm text-gray-600">
-              Publica lo que necesitas y encuentra al técnico ideal
+              Encuentra al técnico ideal. No olvides revisar sus perfiles y trabajos anteriores para tomar la mejor decisión y al finalizar el servicio, deja tu reseña y comentario.
             </p>
           </div>
 
@@ -91,15 +91,23 @@ export default function Home() {
             <div className="text-3xl font-bold text-green-600 mb-2">🔧</div>
             <h3 className="font-semibold text-gray-900 mb-1">Técnicos</h3>
             <p className="text-sm text-gray-600">
-              Muestra tu trabajo y consigue nuevos clientes
+              Muestra tu trabajo y consigue nuevos clientes. Recuerda que un buen perfil y portafolio puede abrirte muchas oportunidades.
             </p>
           </div>
 
           <div className="bg-white rounded-xl shadow-sm p-6 text-center border border-gray-200">
-            <div className="text-3xl font-bold text-purple-600 mb-2">🤝</div>
-            <h3 className="font-semibold text-gray-900 mb-1">Conexión</h3>
+            <div className="text-3xl font-bold text-purple-600 mb-2">⭐</div>
+            <h3 className="font-semibold text-gray-900 mb-1">Reseñas</h3>
             <p className="text-sm text-gray-600">
-              Conectamos a quien necesita con quien puede ayudar
+              Las reseñas son clave para que otros usuarios confíen en tus servicios o habilidades. No olvides dejar tu reseñas, para construir confianza y reputación en la comunidad.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-6 text-center border border-gray-200">
+            <div className="text-3xl font-bold text-purple-600 mb-2">💬</div>
+            <h3 className="font-semibold text-gray-900 mb-1">Comentarios</h3>
+            <p className="text-sm text-gray-600">
+              Los comentarios son una forma de compartir tu experiencia con otros usuarios. No olvides dejar tu opinión, para garantizar que la comunidad tenga información valiosa y confiable sobre los servicios y técnicos.
             </p>
           </div>
         </div>
