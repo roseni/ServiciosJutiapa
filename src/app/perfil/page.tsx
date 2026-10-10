@@ -475,7 +475,7 @@ const handleDpiReversoChange = async (
 
         {(userProfile?.dpiFotoUrl || dpiFrenteUrl) && (
           <img
-            src={userProfile?.dpiFotoUrl || dpiFrenteUrl}
+            src={userProfile?.dpiFotoUrl ?? dpiFrenteUrl ?? undefined}
             alt="Frente del DPI"
             className="w-full max-w-md h-auto max-h-64 object-contain rounded-lg border border-gray-200 mb-3"
           />
