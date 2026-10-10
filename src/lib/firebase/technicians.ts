@@ -26,6 +26,12 @@ export type PublicTechnicianProfile = {
   skills?: string[];
   dpiFotoUrl?: string | null;
   role: 'tecnico';
+  redesSociales?: {
+    facebook?: string;
+    instagram?: string;
+    tiktok?: string;
+    linkedin?: string;
+  };
   
   // Estadísticas de calificación
   averageRating?: number;
@@ -86,6 +92,7 @@ export async function getAllTechnicians(limit?: number): Promise<PublicTechnicia
       role: 'tecnico' as const,
       averageRating: data.averageRating || 0,
       totalReviews: data.totalReviews || 0,
+      redesSociales: data.redesSociales,
     };
   });
   
@@ -108,7 +115,7 @@ export async function searchTechniciansBySkill(skill: string): Promise<PublicTec
     usersRef,
     where("role", "==", "tecnico"),
     where("skills", "array-contains", skill),
-  where("verificacionEstado", "==", "verificado")
+    where("verificacionEstado", "==", "verificado")
   );
   
   const snapshot = await getDocs(q);
@@ -125,6 +132,7 @@ export async function searchTechniciansBySkill(skill: string): Promise<PublicTec
       role: 'tecnico' as const,
       averageRating: data.averageRating || 0,
       totalReviews: data.totalReviews || 0,
+      redesSociales: data.redesSociales,
     };
   });
   
@@ -166,6 +174,7 @@ export async function getPublicTechnicianProfile(uid: string): Promise<PublicTec
     role: 'tecnico' as const,
     averageRating: data.averageRating || 0,
     totalReviews: data.totalReviews || 0,
+    redesSociales: data.redesSociales,
   };
 }
 
@@ -179,7 +188,7 @@ export async function getTopRatedTechnicians(limit: number = 10): Promise<Public
   const q = query(
     usersRef,
     where("role", "==", "tecnico"),
-  where("verificacionEstado", "==", "verificado")
+    where("verificacionEstado", "==", "verificado")
   );
   
   const snapshot = await getDocs(q);
@@ -196,6 +205,7 @@ export async function getTopRatedTechnicians(limit: number = 10): Promise<Public
       role: 'tecnico' as const,
       averageRating: data.averageRating || 0,
       totalReviews: data.totalReviews || 0,
+      redesSociales: data.redesSociales,
     };
   });
   

@@ -44,6 +44,13 @@ export default function PerfilPage() {
   const [saving, setSaving] = React.useState(false);
   const [saveError, setSaveError] = React.useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = React.useState(false);
+  const [redesSociales, setRedesSociales] = React.useState({
+  facebook: '',
+  instagram: '',
+  tiktok: '',
+  linkedin: '',
+});
+
   
   // Estado de calificaciones
   const [ratingStats, setRatingStats] = React.useState({ averageRating: 0, totalReviews: 0, ratingsBreakdown: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } });
@@ -69,6 +76,20 @@ export default function PerfilPage() {
       setPasoDpi('reverso');
     }
   }, [userProfile?.dpiFotoUrl]);
+
+  // Redes sociales 
+  React.useEffect(() => {
+  if (userProfile) {
+    setBio(userProfile.bio || '');
+    setSkills(userProfile.skills || []);
+    setRedesSociales({
+      facebook: userProfile.redesSociales?.facebook ?? '',
+      instagram: userProfile.redesSociales?.instagram ?? '',
+      tiktok: userProfile.redesSociales?.tiktok ?? '',
+      linkedin: userProfile.redesSociales?.linkedin ?? '',
+    });
+  }
+}, [userProfile]);
 
 //nuevo
 const handleDpiFrenteChange = async (
@@ -123,7 +144,7 @@ const handleDpiFrenteChange = async (
     await refreshUserProfile();
 
     alert(
-  `✓ Frente del DPI procesado.\nCUI: ${leido.cui}\nVersión: ${leido.version || 'detectada'}\n✓ Los datos del perfil y el DPI coinciden.\n\nAhora sube la foto del reverso.`
+  `✓ Frente del DPI procesado.\nCUI: ${leido.cui}\nVersión: ${leido.version || 'detectada'}\n✓ Los datos del perfil y el DPI coinciden.\n\nTu cuenta esta verificada.`
     );
 
     setPasoDpi('reverso');
@@ -323,6 +344,12 @@ const handleDpiReversoChange = async (
       await updateUserProfile(user.uid, {
         bio: bio.trim() || null,
         skills: skills.length > 0 ? skills : undefined,
+        redesSociales: {
+          facebook: redesSociales.facebook.trim() || null,
+          instagram: redesSociales.instagram.trim() || null,
+          tiktok: redesSociales.tiktok.trim() || null,
+          linkedin: redesSociales.linkedin.trim() || null,
+          },
       });
 
       await refreshUserProfile();
@@ -343,6 +370,12 @@ const handleDpiReversoChange = async (
     if (userProfile) {
       setBio(userProfile.bio || '');
       setSkills(userProfile.skills || []);
+      setRedesSociales({
+      facebook: userProfile.redesSociales?.facebook ?? '',
+      instagram: userProfile.redesSociales?.instagram ?? '',
+      tiktok: userProfile.redesSociales?.tiktok ?? '',
+      linkedin: userProfile.redesSociales?.linkedin ?? '',
+    });
     }
     setSkillSearch('');
     setSaveError(null);
@@ -737,6 +770,91 @@ const handleDpiReversoChange = async (
                     ))
                   ) : (
                     <p className="text-base text-gray-500">No has agregado habilidades aún.</p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Redes sociales */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Redes Sociales
+              </label>
+
+              {isEditing ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">📘</span>
+                    <input
+                      type="url"
+                      value={redesSociales.facebook}
+                      onChange={(e) => setRedesSociales({ ...redesSociales, facebook: e.target.value })}
+                      placeholder="https://facebook.com/usuario"
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">📸</span>
+                    <input
+                      type="url"
+                      value={redesSociales.instagram}
+                      onChange={(e) => setRedesSociales({ ...redesSociales, instagram: e.target.value })}
+                      placeholder="https://instagram.com/usuario"
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">🎵</span>
+                    <input
+                      type="url"
+                      value={redesSociales.tiktok}
+                      onChange={(e) => setRedesSociales({ ...redesSociales, tiktok: e.target.value })}
+                      placeholder="https://tiktok.com/@usuario"
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">💼</span>
+                    <input
+                      type="url"
+                      value={redesSociales.linkedin}
+                      onChange={(e) => setRedesSociales({ ...redesSociales, linkedin: e.target.value })}
+                      placeholder="https://linkedin.com/in/usuario"
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-3">
+                  {(userProfile.redesSociales?.facebook || userProfile.redesSociales?.instagram || userProfile.redesSociales?.tiktok || userProfile.redesSociales?.linkedin) ? (
+                    <>
+                      {userProfile.redesSociales?.facebook && (
+                        <a href={userProfile.redesSociales.facebook} target="_blank" rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-full text-sm hover:bg-blue-700 transition-colors">
+                          📘 Facebook
+                        </a>
+                      )}
+                      {userProfile.redesSociales?.instagram && (
+                        <a href={userProfile.redesSociales.instagram} target="_blank" rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-3 py-1.5 bg-pink-600 text-white rounded-full text-sm hover:bg-pink-700 transition-colors">
+                          📸 Instagram
+                        </a>
+                      )}
+                      {userProfile.redesSociales?.tiktok && (
+                        <a href={userProfile.redesSociales.tiktok} target="_blank" rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-3 py-1.5 bg-black text-white rounded-full text-sm hover:bg-gray-800 transition-colors">
+                          🎵 TikTok
+                        </a>
+                      )}
+                      {userProfile.redesSociales?.linkedin && (
+                        <a href={userProfile.redesSociales.linkedin} target="_blank" rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-800 text-white rounded-full text-sm hover:bg-blue-900 transition-colors">
+                          💼 LinkedIn
+                        </a>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-base text-gray-500">No has agregado redes sociales.</p>
                   )}
                 </div>
               )}

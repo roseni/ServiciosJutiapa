@@ -7,6 +7,12 @@ export type UpdateProfileData = {
   bio?: string | null;
   skills?: string[];
   dpiFotoUrl?: string | null;
+  redesSociales?: {
+    facebook?: string | null;
+    instagram?: string | null;
+    tiktok?: string | null;
+    linkedin?: string | null;
+  };
 };
 
 /**
@@ -32,6 +38,14 @@ export async function updateUserProfile(
       ...(data.dpiFotoUrl !== undefined && {
        dpiFotoUrl: data.dpiFotoUrl,
   }),
+      ...(data.redesSociales !== undefined && {
+        redesSociales: {
+          facebook: data.redesSociales.facebook?.trim() || null,
+          instagram: data.redesSociales.instagram?.trim() || null,
+          tiktok: data.redesSociales.tiktok?.trim() || null,
+          linkedin: data.redesSociales.linkedin?.trim() || null,
+        },
+      }),
     };
 
     await updateDoc(userRef, updateData);

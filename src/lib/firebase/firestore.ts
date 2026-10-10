@@ -67,6 +67,12 @@ export type UserProfile = {
     4: number;
     5: number;
   };
+  redesSociales?: {
+  facebook?: string;
+  instagram?: string;
+  tiktok?: string;
+  linkedin?: string;
+};
 };
 
 export async function ensureUserDocument(profile: UserProfile): Promise<void> {

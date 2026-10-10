@@ -266,6 +266,39 @@ export default function TechnicianPublicProfilePage() {
           </div>
         )}
 
+        {/* Redes sociales */}
+        {(technician.redesSociales?.facebook || technician.redesSociales?.instagram || technician.redesSociales?.tiktok || technician.redesSociales?.linkedin) && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Redes Sociales</h2>
+            <div className="flex flex-wrap gap-3">
+              {technician.redesSociales?.facebook && (
+                <a href={technician.redesSociales.facebook} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-full text-sm hover:bg-blue-700 transition-colors">
+                  📘 Facebook
+                </a>
+              )}
+              {technician.redesSociales?.instagram && (
+                <a href={technician.redesSociales.instagram} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-pink-600 text-white rounded-full text-sm hover:bg-pink-700 transition-colors">
+                  📸 Instagram
+                </a>
+              )}
+              {technician.redesSociales?.tiktok && (
+                <a href={technician.redesSociales.tiktok} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-black text-white rounded-full text-sm hover:bg-gray-800 transition-colors">
+                  🎵 TikTok
+                </a>
+              )}
+              {technician.redesSociales?.linkedin && (
+                <a href={technician.redesSociales.linkedin} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-800 text-white rounded-full text-sm hover:bg-blue-900 transition-colors">
+                  💼 LinkedIn
+                </a>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Reseñas */}
         {reviews.length > 0 && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
