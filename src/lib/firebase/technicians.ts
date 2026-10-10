@@ -63,7 +63,8 @@ export async function getAllTechnicians(limit?: number): Promise<PublicTechnicia
   // Query simple sin orderBy para evitar problemas con campos faltantes
   let q = query(
     usersRef,
-    where("role", "==", "tecnico")
+    where("role", "==", "tecnico"),
+    where("verificacionEstado", "==", "verificado")
   );
   
   if (limit) {
@@ -106,7 +107,8 @@ export async function searchTechniciansBySkill(skill: string): Promise<PublicTec
   const q = query(
     usersRef,
     where("role", "==", "tecnico"),
-    where("skills", "array-contains", skill)
+    where("skills", "array-contains", skill),
+  where("verificacionEstado", "==", "verificado")
   );
   
   const snapshot = await getDocs(q);
@@ -149,7 +151,7 @@ export async function getPublicTechnicianProfile(uid: string): Promise<PublicTec
   const data = userSnap.data() as UserProfile;
   
   // Verificar que sea técnico
-  if (data.role !== 'tecnico') {
+  if (data.role !== 'tecnico' || data.verificacionEstado !== 'verificado') {
     return null;
   }
   
@@ -176,7 +178,8 @@ export async function getTopRatedTechnicians(limit: number = 10): Promise<Public
   
   const q = query(
     usersRef,
-    where("role", "==", "tecnico")
+    where("role", "==", "tecnico"),
+  where("verificacionEstado", "==", "verificado")
   );
   
   const snapshot = await getDocs(q);

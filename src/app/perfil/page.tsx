@@ -12,6 +12,11 @@ import React from 'react';
 import StarRating from '@/components/reviews/StarRating';
 import Avatar from '@/components/common/Avatar';
 import ActivarUbicacion from "@/components/tecnicos/ActivarUbicacion";//nuevo
+import { leerDPI } from '@/lib/leerDPI';
+import { validarCUI } from '@/lib/validarCUI';
+import { guardarVerificacionDPI } from '@/lib/firebase/dpi';
+import Tesseract from 'tesseract.js';
+
 
 
 
@@ -21,6 +26,13 @@ export default function PerfilPage() {
   const [mounted, setMounted] = React.useState(false);
   const [signingOut, setSigningOut] = React.useState(false);
   const tecnicoId = user?.uid ?? null;
+  const [dpiFrenteUrl, setDpiFrenteUrl] = React.useState<string | null>(null);
+  const [dpiReversoUrl, setDpiReversoUrl] = React.useState<string | null>(null);
+  const dpiVerificado = userProfile?.dpiFotoUrl;
+  const [pasoDpi, setPasoDpi] = React.useState<'frente' | 'reverso'>(
+  userProfile?.dpiFotoUrl ? 'reverso' : 'frente'
+);
+
   
   // Estado de edición
   const [isEditing, setIsEditing] = React.useState(false);
@@ -50,50 +62,123 @@ export default function PerfilPage() {
       setSkills(userProfile.skills || []);
     }
   }, [userProfile]);
+
+  // Si el frente del DPI ya está guardado, pasar al paso del reverso
+  React.useEffect(() => {
+    if (userProfile?.dpiFotoUrl) {
+      setPasoDpi('reverso');
+    }
+  }, [userProfile?.dpiFotoUrl]);
+
 //nuevo
-    const handleDpiPhotoChange = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
+const handleDpiFrenteChange = async (
+  event: React.ChangeEvent<HTMLInputElement>
+) => {
+  const file = event.target.files?.[0];
+  if (!file || !user) return;
 
-    if (!file || !user) return;
+  if (!file.type.startsWith('image/')) {
+    alert('Por favor selecciona una imagen válida.');
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    alert('La fotografía no puede superar los 5 MB.');
+    return;
+  }
 
-    // Verificar que sea una imagen
-    if (!file.type.startsWith('image/')) {
-      alert('Por favor selecciona una imagen válida.');
+  try {
+    setUploadingDpi(true);
+
+    // 1. Leer el frente con OCR (CUI y versión)
+    const leido = await leerDPI(file);
+
+    // 2. Validar el CUI
+    if (!validarCUI(leido.cui)) {
+      alert('No se pudo leer un CUI válido. Asegúrate de que la foto sea clara.');
       return;
     }
 
-    // Verificar tamaño máximo de 5 MB
-    if (file.size > 5 * 1024 * 1024) {
-      alert('La fotografía no puede superar los 5 MB.');
+    // 2.5 Comparar con el CUI del perfil
+    const cuiPerfil = (userProfile?.dpi ?? '').replace(/\s/g, '');
+    const coincide = leido.cui === cuiPerfil;
+
+    if (!coincide) {
+      alert('El CUI de la foto no coincide con el de tu perfil. Verifica e intenta de nuevo.');
       return;
     }
 
-    try {
-      setUploadingDpi(true);
+    // 3. Subir la foto del frente
+    const url = await uploadDpiPhoto(user.uid, file, 'frente');
+    setDpiFrenteUrl(url);
 
-      // 1. Subir la fotografía a Firebase Storage
-      const dpiFotoUrl = await uploadDpiPhoto(user.uid, file);
-      // 2. Guardar la URL en el perfil de Firestore
-      await updateUserProfile(user.uid, {
-        dpiFotoUrl,
-      });
+    // 4. Guardar CUI y versión (estado pendiente, falta la serie)
+    await guardarVerificacionDPI(user.uid, {
+      cui: leido.cui,
+      version: leido.version,
+      serie: '',
+      dpiFotoUrl: url,
+      verificacionEstado: coincide ? 'verificado' : 'rechazado',
+    });
 
-      // 3. Actualizar el perfil mostrado en la aplicación
-      await refreshUserProfile();
+    await refreshUserProfile();
 
-      alert('Fotografía del DPI guardada correctamente.');
-    } catch (error) {
-      console.error('Error al subir fotografía del DPI:', error);
-      alert('No se pudo guardar la fotografía del DPI.');
-    } finally {
-      setUploadingDpi(false);
+    alert(
+  `✓ Frente del DPI procesado.\nCUI: ${leido.cui}\nVersión: ${leido.version || 'detectada'}\n✓ Los datos del perfil y el DPI coinciden.\n\nAhora sube la foto del reverso.`
+    );
 
-      // Permite volver a seleccionar incluso la misma fotografía
-      event.target.value = '';
-    }
-  }; //fin de nuevo
+    setPasoDpi('reverso');
+  } catch (error) {
+    console.error('Error al procesar el frente del DPI:', error);
+    alert('No se pudo procesar el frente del DPI. Inténtalo de nuevo.');
+  } finally {
+    setUploadingDpi(false);
+    event.target.value = '';
+  }
+};
+
+// Subir el reverso del DPI (serie)
+const handleDpiReversoChange = async (
+ event: React.ChangeEvent<HTMLInputElement>
+) => {
+  const file = event.target.files?.[0];
+  if (!file || !user) return;
+
+  if (!file.type.startsWith('image/')) {
+    alert('Por favor selecciona una imagen válida.');
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    alert('La fotografía no puede superar los 5 MB.');
+    return;
+  }
+
+  try {
+    setUploadingDpi(true);
+
+    // Solo subir la foto, sin OCR
+    const url = await uploadDpiPhoto(user.uid, file, 'reverso');
+    setDpiReversoUrl(url);
+
+    // Guardar la URL del reverso sin tocar la serie
+    await guardarVerificacionDPI(user.uid, {
+      cui: userProfile?.dpi ?? '',
+      version: userProfile?.versionDPI ?? '',
+      serie: '',
+      dpiFotoUrl: userProfile?.dpiFotoUrl ?? '',
+      dpiReversoUrl: url,
+    });
+
+    await refreshUserProfile();
+    alert('✓ Reverso del DPI guardado.');
+  } catch (error) {
+    console.error('Error al guardar el reverso del DPI:', error);
+    alert('No se pudo guardar el reverso del DPI. Inténtalo de nuevo.');
+  } finally {
+    setUploadingDpi(false);
+    event.target.value = '';
+  }
+};
+ //fin de nuevo
 
   // Cargar calificaciones del usuario
   React.useEffect(() => {
@@ -368,42 +453,78 @@ export default function PerfilPage() {
       {tecnicoId && <ActivarUbicacion tecnicoId={tecnicoId} />}
     </div>
 
-      {/* Fotografía del DPI */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          Fotografía del DPI
-        </h2>
+    {/* Fotografía del DPI */}
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        Verificación de DPI
+      </h2>
 
-        {userProfile?.dpiFotoUrl && (
-          <div className="mb-4">
-            <img
-              src={userProfile.dpiFotoUrl}
-              alt="Fotografía del DPI"
-              className="w-full max-w-md h-auto max-h-64 object-contain rounded-lg border border-gray-200"
-            />
-          </div>
+      {/* Frente */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm font-medium text-gray-700">Frente del DPI</p>
+          {userProfile?.dpiFotoUrl && userProfile?.verificacionEstado === 'verificado' && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              Verificado
+            </span>
+          )}
+        </div>
+
+        {(userProfile?.dpiFotoUrl || dpiFrenteUrl) && (
+          <img
+            src={userProfile?.dpiFotoUrl || dpiFrenteUrl}
+            alt="Frente del DPI"
+            className="w-full max-w-md h-auto max-h-64 object-contain rounded-lg border border-gray-200 mb-3"
+          />
         )}
 
         <label
-          htmlFor="dpi-photo"
+          htmlFor="dpi-frente"
           className="inline-flex items-center justify-center gap-2 px-4 py-3 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors cursor-pointer"
         >
-          {uploadingDpi
-            ? 'Subiendo fotografía...'
-            : userProfile?.dpiFotoUrl
-              ? 'Cambiar fotografía'
-              : 'Agregar fotografía del DPI'}
+          {uploadingDpi ? 'Procesando frente...' : (userProfile?.dpiFotoUrl || dpiFrenteUrl) ? 'Cambiar foto del frente' : 'Subir frente del DPI'}
         </label>
-
         <input
-          id="dpi-photo"
+          id="dpi-frente"
           type="file"
           accept="image/*"
-          onChange={handleDpiPhotoChange}
+          onChange={handleDpiFrenteChange}
           disabled={uploadingDpi}
           className="hidden"
         />
       </div>
+
+      {/* Reverso 
+      <div className="border-t border-gray-100 pt-6">
+        <p className="text-sm font-medium text-gray-700 mb-3">Reverso del DPI</p>
+
+        {(userProfile?.dpiReversoUrl || dpiReversoUrl) && (
+          <img
+            src={userProfile?.dpiReversoUrl || dpiReversoUrl}
+            alt="Reverso del DPI"
+            className="w-full max-w-md h-auto max-h-64 object-contain rounded-lg border border-gray-200 mb-3"
+          />
+        )}
+
+        <label
+          htmlFor="dpi-reverso"
+          className="inline-flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 text-gray-800 rounded-lg font-medium hover:bg-gray-200 transition-colors cursor-pointer"
+        >
+          {uploadingDpi ? 'Procesando reverso...' : (userProfile?.dpiReversoUrl || dpiReversoUrl) ? 'Cambiar foto del reverso' : 'Subir reverso del DPI'}
+        </label>
+        <input
+          id="dpi-reverso"
+          type="file"
+          accept="image/*"
+          onChange={handleDpiReversoChange}
+          disabled={uploadingDpi}
+          className="hidden"
+        />
+      </div>*/}
+    </div>
 
         {/* Información de cuenta */}
         <div className="bg-white rounded-lg shadow-sm p-6 sm:p-8 mb-4">

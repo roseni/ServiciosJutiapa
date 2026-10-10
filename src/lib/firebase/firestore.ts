@@ -51,6 +51,12 @@ export type UserProfile = {
   bio?: string | null; // Biografía del usuario
   skills?: string[] | null; // Habilidades/especialidades
   dpiFotoUrl?: string | null; // URL de la fotografía del DPI del usuario
+  dpiReversoUrl?: string | null; // URL de la fotografía del reverso del DPI del usuario
+  // Verificación de identidad
+  verificacionEstado?: "pendiente" | "verificado" | "rechazado" | null;
+  verificacionFecha?: unknown;
+  numeroSerie?: string | null;
+  versionDPI?: string | null;
   // Estadísticas de calificación
   averageRating?: number;
   totalReviews?: number;

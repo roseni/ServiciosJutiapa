@@ -99,7 +99,7 @@ export default function Home() {
             <div className="text-3xl font-bold text-purple-600 mb-2">⭐</div>
             <h3 className="font-semibold text-gray-900 mb-1">Reseñas</h3>
             <p className="text-sm text-gray-600">
-              Las reseñas son clave para que otros usuarios confíen en tus servicios o habilidades. No olvides dejar tu reseñas, para construir confianza y reputación en la comunidad.
+              Las reseñas son clave para que otros usuarios confíen en tus servicios o habilidades. No olvides pedir al cliente dejar tu reseña, para construir confianza y reputación en la comunidad.
             </p>
           </div>
 
