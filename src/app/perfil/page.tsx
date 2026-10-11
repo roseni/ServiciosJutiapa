@@ -217,10 +217,11 @@ const handleEliminarFrente = async () => {
 
     // 2. Limpiar en Firestore (solo el frente)
     await guardarVerificacionDPI(user.uid, {
-      cui: '',
-      version: '',
-      serie: '',
+       cui: userProfile?.dpi ?? '',
+      version: userProfile?.versionDPI ?? '',
+      serie: userProfile?.numeroSerie ?? '',
       dpiFotoUrl: '',
+      dpiReversoUrl: userProfile?.dpiReversoUrl ?? '',
       verificacionEstado: 'pendiente',
     });
 
