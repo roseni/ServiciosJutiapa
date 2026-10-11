@@ -3,6 +3,7 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { getApp } from 'firebase/app';
 import { getDb } from "./firestore";
 
+
 const storage = getStorage(getApp());
 
 /**

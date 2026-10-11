@@ -16,7 +16,7 @@ import { leerDPI } from '@/lib/leerDPI';
 import { validarCUI } from '@/lib/validarCUI';
 import { guardarVerificacionDPI } from '@/lib/firebase/dpi';
 import Tesseract from 'tesseract.js';
-
+import { deleteImage } from '@/lib/firebase/storage';
 
 
 
@@ -39,6 +39,7 @@ export default function PerfilPage() {
   const [bio, setBio] = React.useState('');
   const [skills, setSkills] = React.useState<string[]>([]);
   const [uploadingDpi, setUploadingDpi] = React.useState(false);//nuevo
+  const [deletingDpi, setDeletingDpi] = React.useState(false);//nuevo
   const [skillSearch, setSkillSearch] = React.useState('');
   const [showSkillDropdown, setShowSkillDropdown] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
@@ -113,6 +114,7 @@ const handleDpiFrenteChange = async (
     // 1. Leer el frente con OCR (CUI y versión)
     const leido = await leerDPI(file);
 
+
     // 2. Validar el CUI
     if (!validarCUI(leido.cui)) {
       alert('No se pudo leer un CUI válido. Asegúrate de que la foto sea clara.');
@@ -122,6 +124,7 @@ const handleDpiFrenteChange = async (
     // 2.5 Comparar con el CUI del perfil
     const cuiPerfil = (userProfile?.dpi ?? '').replace(/\s/g, '');
     const coincide = leido.cui === cuiPerfil;
+
 
     if (!coincide) {
       alert('El CUI de la foto no coincide con el de tu perfil. Verifica e intenta de nuevo.');
@@ -199,6 +202,44 @@ const handleDpiReversoChange = async (
     event.target.value = '';
   }
 };
+
+const handleEliminarFrente = async () => {
+  if (!user || !userProfile?.dpiFotoUrl) return;
+
+  if (!window.confirm('¿Seguro que deseas eliminar la foto del frente del DPI? Se quitará tu verificación.')) {
+    return;
+  }
+
+  setDeletingDpi(true);
+  try {
+      // 1. Borrar de Firebase Storage
+    await deleteImage(userProfile.dpiFotoUrl);
+
+    // 2. Limpiar en Firestore (solo el frente)
+    await guardarVerificacionDPI(user.uid, {
+      cui: '',
+      version: '',
+      serie: '',
+      dpiFotoUrl: '',
+      verificacionEstado: 'pendiente',
+    });
+
+    // 3. Refrescar el store para que la UI vuelva al estado inicial
+    await refreshUserProfile();
+
+    // 4. Limpiar estado local
+    setDpiFrenteUrl(null);
+    setPasoDpi('frente');
+
+    alert('Foto del DPI eliminada. Tu verificación quedó pendiente.');
+  } catch (error) {
+    console.error('Error al eliminar el DPI:', error);
+    alert('No se pudo eliminar la foto. Inténtalo de nuevo.');
+  } finally {
+    setDeletingDpi(false);
+  }
+};
+
  //fin de nuevo
 
   // Cargar calificaciones del usuario
@@ -513,13 +554,25 @@ const handleDpiReversoChange = async (
             className="w-full max-w-md h-auto max-h-64 object-contain rounded-lg border border-gray-200 mb-3"
           />
         )}
+        <div className="flex flex-wrap items-center gap-2">
+          <label
+            htmlFor="dpi-frente"
+            className="inline-flex items-center justify-center gap-2 px-3 py-2 bg-black text-white text-sm rounded-lg font-medium hover:bg-gray-800 transition-colors cursor-pointer"
+          >
+            {uploadingDpi ? 'Procesando frente...' : (userProfile?.dpiFotoUrl || dpiFrenteUrl) ? 'Cambiar foto del frente' : 'Subir frente del DPI'}
+          </label>
 
-        <label
-          htmlFor="dpi-frente"
-          className="inline-flex items-center justify-center gap-2 px-4 py-3 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors cursor-pointer"
-        >
-          {uploadingDpi ? 'Procesando frente...' : (userProfile?.dpiFotoUrl || dpiFrenteUrl) ? 'Cambiar foto del frente' : 'Subir frente del DPI'}
-        </label>
+          {(userProfile?.dpiFotoUrl || dpiFrenteUrl) && (
+            <button
+              onClick={handleEliminarFrente}
+              disabled={deletingDpi}
+              className="inline-flex items-center justify-center gap-2 px-3 py-2 bg-red-50 text-red-700 text-sm rounded-lg font-medium hover:bg-red-100 transition-colors cursor-pointer disabled:opacity-50"
+            >
+              {deletingDpi ? 'Eliminando...' : 'Eliminar'}
+            </button>
+          )}
+        </div>
+
         <input
           id="dpi-frente"
           type="file"
@@ -776,89 +829,89 @@ const handleDpiReversoChange = async (
             </div>
 
             {/* Redes sociales */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Redes Sociales
-              </label>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Redes Sociales
+        </label>
 
-              {isEditing ? (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">📘</span>
-                    <input
-                      type="url"
-                      value={redesSociales.facebook}
-                      onChange={(e) => setRedesSociales({ ...redesSociales, facebook: e.target.value })}
-                      placeholder="https://facebook.com/usuario"
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                    />
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">📸</span>
-                    <input
-                      type="url"
-                      value={redesSociales.instagram}
-                      onChange={(e) => setRedesSociales({ ...redesSociales, instagram: e.target.value })}
-                      placeholder="https://instagram.com/usuario"
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                    />
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">🎵</span>
-                    <input
-                      type="url"
-                      value={redesSociales.tiktok}
-                      onChange={(e) => setRedesSociales({ ...redesSociales, tiktok: e.target.value })}
-                      placeholder="https://tiktok.com/@usuario"
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                    />
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">💼</span>
-                    <input
-                      type="url"
-                      value={redesSociales.linkedin}
-                      onChange={(e) => setRedesSociales({ ...redesSociales, linkedin: e.target.value })}
-                      placeholder="https://linkedin.com/in/usuario"
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-wrap gap-3">
-                  {(userProfile.redesSociales?.facebook || userProfile.redesSociales?.instagram || userProfile.redesSociales?.tiktok || userProfile.redesSociales?.linkedin) ? (
-                    <>
-                      {userProfile.redesSociales?.facebook && (
-                        <a href={userProfile.redesSociales.facebook} target="_blank" rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-full text-sm hover:bg-blue-700 transition-colors">
-                          📘 Facebook
-                        </a>
-                      )}
-                      {userProfile.redesSociales?.instagram && (
-                        <a href={userProfile.redesSociales.instagram} target="_blank" rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 px-3 py-1.5 bg-pink-600 text-white rounded-full text-sm hover:bg-pink-700 transition-colors">
-                          📸 Instagram
-                        </a>
-                      )}
-                      {userProfile.redesSociales?.tiktok && (
-                        <a href={userProfile.redesSociales.tiktok} target="_blank" rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 px-3 py-1.5 bg-black text-white rounded-full text-sm hover:bg-gray-800 transition-colors">
-                          🎵 TikTok
-                        </a>
-                      )}
-                      {userProfile.redesSociales?.linkedin && (
-                        <a href={userProfile.redesSociales.linkedin} target="_blank" rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-800 text-white rounded-full text-sm hover:bg-blue-900 transition-colors">
-                          💼 LinkedIn
-                        </a>
-                      )}
-                    </>
-                  ) : (
-                    <p className="text-base text-gray-500">No has agregado redes sociales.</p>
-                  )}
-                </div>
-              )}
+        {isEditing ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="text-xl">📘</span>
+              <input
+                type="url"
+                value={redesSociales.facebook}
+                onChange={(e) => setRedesSociales({ ...redesSociales, facebook: e.target.value })}
+                placeholder="https://facebook.com/usuario"
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+              />
             </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xl">📸</span>
+              <input
+                type="url"
+                value={redesSociales.instagram}
+                onChange={(e) => setRedesSociales({ ...redesSociales, instagram: e.target.value })}
+                placeholder="https://instagram.com/usuario"
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xl">🎵</span>
+              <input
+                type="url"
+                value={redesSociales.tiktok}
+                onChange={(e) => setRedesSociales({ ...redesSociales, tiktok: e.target.value })}
+                placeholder="https://tiktok.com/@usuario"
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xl">💼</span>
+              <input
+                type="url"
+                value={redesSociales.linkedin}
+                onChange={(e) => setRedesSociales({ ...redesSociales, linkedin: e.target.value })}
+                placeholder="https://linkedin.com/in/usuario"
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-3">
+            {(userProfile.redesSociales?.facebook || userProfile.redesSociales?.instagram || userProfile.redesSociales?.tiktok || userProfile.redesSociales?.linkedin) ? (
+              <>
+                {userProfile.redesSociales?.facebook && (
+                  <a href={userProfile.redesSociales.facebook} target="_blank" rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-full text-sm hover:bg-blue-700 transition-colors">
+                    📘 Facebook
+                  </a>
+                )}
+                {userProfile.redesSociales?.instagram && (
+                  <a href={userProfile.redesSociales.instagram} target="_blank" rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-pink-600 text-white rounded-full text-sm hover:bg-pink-700 transition-colors">
+                    📸 Instagram
+                  </a>
+                )}
+                {userProfile.redesSociales?.tiktok && (
+                  <a href={userProfile.redesSociales.tiktok} target="_blank" rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-black text-white rounded-full text-sm hover:bg-gray-800 transition-colors">
+                    🎵 TikTok
+                  </a>
+                )}
+                {userProfile.redesSociales?.linkedin && (
+                  <a href={userProfile.redesSociales.linkedin} target="_blank" rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-800 text-white rounded-full text-sm hover:bg-blue-900 transition-colors">
+                    💼 LinkedIn
+                  </a>
+                )}
+              </>
+            ) : (
+              <p className="text-base text-gray-500">No has agregado redes sociales.</p>
+            )}
+          </div>
+        )}
+      </div>
 
             {/* Botones de guardar/cancelar */}
             {isEditing && (

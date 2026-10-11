@@ -17,10 +17,14 @@ export async function leerDPI(
   const textoFrente = dataFrente.text;
 
   // Limpiar números del frente
-  const soloNumerosFrente = textoFrente.replace(/\D/g, "");
+const soloNumerosFrente = textoFrente.replace(/\D/g, "");
 
-  // CUI: primer bloque de 13 dígitos
-  const cui = soloNumerosFrente.match(/\d{13}/)?.[0] ?? "";
+// CUI: buscar patrón 4-5-4 (como aparece en el DPI: 2756 92639 2210)
+const matchCui = textoFrente.match(/\b\d{4}\s*\d{5}\s*\d{4}\b/);
+// Si no lo encuentra, tomar los primeros 13 dígitos
+const cui = matchCui
+  ? matchCui[0].replace(/\s/g, '')
+  : (soloNumerosFrente.match(/\d{13}/)?.[0] ?? '');
 
   // Versión: 3 dígitos. En el DPI aparece como "003" o "VERSIÓN: 003"
   // Buscar después de "VERSI" o al final del texto
